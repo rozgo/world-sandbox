@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SLAM Trace Viewer</title>
+  <meta name="description" content="Replay an AMB3R-SLAM run in 3D: the camera, its frustum and every intermediate result as overlays.">
+  <link rel="stylesheet" href="viewer.css">
+  <script type="importmap">
+    {"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+                 "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="gl"></canvas>
+    <video id="egoVideo" muted playsinline preload="auto" aria-hidden="true"></video>
+    <div id="loading">Loading the map…</div>
+    <div id="hud" aria-live="polite">
+      <div id="hudFrame"></div>
+      <div id="hudFront"></div>
+      <div id="hudBack"></div>
+    </div>
+    <figure id="inset">
+      <video id="video" muted playsinline preload="auto"></video>
+      <figcaption>Input video</figcaption>
+    </figure>
+    <aside id="panel">
+      <button id="panelToggle" aria-expanded="true">Layers</button>
+      <div id="panelBody">
+        <div class="group"><span class="label">View</span>
+          <div class="seg" data-name="view">
+            <button data-v="follow" class="on">Follow</button><button data-v="ego">Ego</button><button data-v="orbit">Orbit</button>
+          </div>
+        </div>
+        <div class="group"><span class="label">Colour</span>
+          <div class="seg" data-name="colour">
+            <button data-v="0" class="on">Photo</button><button data-v="1">Submap</button><button data-v="2">Confidence</button><button data-v="3">Time</button>
+          </div>
+        </div>
+        <div class="group"><span class="label">Reveal</span>
+          <div class="seg" data-name="reveal">
+            <button data-v="0" class="on">As filmed</button><button data-v="1">As mapped</button><button data-v="2">All</button>
+          </div>
+        </div>
+        <div class="group layers">
+          <label><input type="checkbox" data-layer="points" checked> Map points</label>
+          <label><input type="checkbox" data-layer="camera" checked> SLAM camera and frame</label>
+          <label><input type="checkbox" data-layer="path" checked> Camera path</label>
+          <label><input type="checkbox" data-layer="front" checked> Front-end window</label>
+          <label><input type="checkbox" data-layer="keyframes" checked> Keyframes</label>
+          <label><input type="checkbox" data-layer="submap" checked> Latest submap pass</label>
+          <label><input type="checkbox" data-layer="graph"> Pose graph</label>
+          <label><input type="checkbox" data-layer="probes"> Loop probes</label>
+          <label><input type="checkbox" data-layer="live"> Front-end live estimate</label>
+          <label><input type="checkbox" data-layer="grid" checked> Ground grid</label>
+        </div>
+        <div class="group"><span class="label">Point size</span><input type="range" id="size" min="0.4" max="3" step="0.05" value="1.2"></div>
+        <div class="group" id="blendGroup"><span class="label">Video over the map (ego)</span><input type="range" id="blend" min="0" max="1" step="0.01" value="0"></div>
+        <div id="legend"></div>
+      </div>
+    </aside>
+  </div>
+  <div id="bar">
+    <button id="play" aria-label="Play">▶</button>
+    <button id="back" aria-label="Previous frame">⏮</button>
+    <button id="fwd" aria-label="Next frame">⏭</button>
+    <input type="range" id="scrub" min="0" max="1" step="1" value="0" aria-label="Frame">
+    <select id="speed" aria-label="Playback speed">
+      <option value="0.25">0.25×</option><option value="0.5" selected>0.5×</option><option value="1">1×</option>
+    </select>
+    <span id="time"></span>
+  </div>
+</div>
+<script type="module" src="viewer.js"></script>
+</body>
+</html>

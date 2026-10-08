@@ -1,0 +1,53 @@
+:root {
+  color-scheme: dark;
+  --bg: #0d0f11; --panel: rgba(20, 23, 26, .86); --line: #2b3035; --text: #e9e6e1; --muted: #9a9690;
+  --accent: #e0703a; --teal: #4fb3a9; --chip: #23272c;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+  font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+#app { display: flex; flex-direction: column; height: 100%; min-height: 360px; }
+#stage { position: relative; flex: 1; overflow: hidden; background: var(--bg); }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#egoVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; opacity: 0; pointer-events: none; }
+#loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 15px; }
+#hud { position: absolute; left: 12px; top: 10px; max-width: min(520px, 60%); pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .9); font-size: 13px; }
+#hud div { margin: 2px 0; }
+#hudFrame { font-weight: 650; font-size: 14px; }
+#hudFront { color: #c9d4d2; }
+#hudBack { color: #f0c8b2; }
+#inset { position: absolute; left: 12px; bottom: 12px; margin: 0; width: clamp(150px, 24%, 300px);
+  border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #000; }
+#inset video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+#inset figcaption { position: absolute; left: 8px; top: 5px; font-size: 11.5px; color: #fff;
+  text-shadow: 0 1px 2px #000; }
+#panel { position: absolute; right: 10px; top: 10px; width: 238px; max-height: calc(100% - 20px); overflow: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; backdrop-filter: blur(6px); }
+#panelToggle { width: 100%; text-align: left; background: none; border: 0; color: var(--text); font-weight: 650;
+  padding: 9px 12px; cursor: pointer; font-size: 13.5px; }
+#panelToggle::after { content: "▾"; float: right; color: var(--muted); }
+#panel.closed #panelToggle::after { content: "▸"; }
+#panel.closed #panelBody { display: none; }
+#panelBody { padding: 0 12px 12px; }
+.group { margin: 8px 0 10px; }
+.label { display: block; color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em;
+  margin-bottom: 4px; }
+.seg { display: flex; flex-wrap: wrap; gap: 4px; }
+.seg button, #bar button, #bar select { background: var(--chip); color: var(--text); border: 1px solid var(--line);
+  border-radius: 6px; padding: 4px 8px; font: inherit; font-size: 12.5px; cursor: pointer; }
+.seg button.on { background: var(--accent); border-color: var(--accent); color: #140b06; font-weight: 650; }
+.layers label { display: flex; gap: 7px; align-items: center; margin: 3px 0; font-size: 13px; cursor: pointer; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+#blendGroup { display: none; }
+#legend { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+#legend .row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+#legend .sw { width: 14px; height: 4px; border-radius: 2px; flex: none; }
+#bar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #121417; border-top: 1px solid var(--line); }
+#bar #scrub { flex: 1; }
+#time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12.5px; min-width: 128px; text-align: right; }
+@media (max-width: 700px) {
+  #panel { width: 196px; }
+  #hud { max-width: 55%; font-size: 12px; }
+  #time { min-width: 0; }
+}

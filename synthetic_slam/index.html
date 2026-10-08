@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Synthetic SLAM Journal</title>
+  <meta name="description" content="A generated junkyard video, run through AMB3R-SLAM stage by stage: front-end tracking, feed-forward submaps, Sim(3) stitching, long-context links, loop retrieval, pose graph and map, with a 3D replay viewer.">
+  <meta name="theme-color" content="#0f1113">
+  <link rel="stylesheet" href="journal.css?v=f054b885eef0">
+  <style>:root { color-scheme: dark; --bg: #0f1113; --text: #e9e6e1; --muted: #a19c94; --card: #171a1d; --line: #2a2e33; --link: #ef9a68; --chip: #22262a; --soft: #1b2524; --bad: #e0524f; --bad-soft: #2b1a18; --accent: #e0703a; --accent-2: #4fb3a9; --accent-3: #e8b931; --on-accent: #140b06; --hero: linear-gradient(125deg, #0c0d0f 0%, #17191c 42%, #33221a 78%, #5a3018 100%); --hero-text: #f1ede6; --film: #08090a; --metric: rgba(255, 255, 255, .06); --toc: rgba(15, 17, 19, .92); --tile-1: linear-gradient(135deg, #b4542a, #6b2f16); --tile-2: linear-gradient(135deg, #2f7f78, #1b4744); --tile-3: linear-gradient(135deg, #8a7224, #4f4014); --tile-4: linear-gradient(135deg, #3a4148, #1f2328); --tile-text: #f6f2ec; }</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <a class="home-link" href="../">&larr; World Sandbox</a>
+    <p class="eyebrow">Engineering journal · October 8, 2026 · AMB3R-SLAM · Depth Anything 3 · Seedance 2.5 · RTX 4090</p>
+    <h1>From six seconds of generated video to a 3D map, one stage at a time</h1>
+    <p class="lede">A text prompt became a 6 s video of a small robot rolling through a junkyard. AMB3R-SLAM turned its 145 frames, plain RGB from one uncalibrated camera, into a camera path and a 3.33 million-point coloured map in 19.9 s on one GPU. We opened the pipeline into eight stages, recorded what each one produced, and built a viewer that replays them all in 3D.</p>
+    <figure class="hero-film">
+      <video src="media/film.mp4" poster="media/film_poster.webp" controls muted playsinline preload="metadata"></video>
+      <figcaption>The SLAM camera (yellow frustum, showing the frame it sees) and its path (orange) as the map grows, with the generated input video in the corner, at 1×; then an orbit of the finished map. Rendered on the CPU from the recorded run; each point appears when the camera passes the frame it came from.</figcaption>
+    </figure>
+    <div class="metrics"><div class="metric"><div class="value">145 frames</div><div class="label">6 s of generated 1280 × 720 video at 24 fps: the only input</div></div><div class="metric"><div class="value">19.9 s</div><div class="label">the whole SLAM run on one RTX 4090, 7.3 frames per second</div></div><div class="metric"><div class="value">3.33 M</div><div class="label">points in the map, each kept pixel of 37 frames</div></div><div class="metric"><div class="value">4 submaps</div><div class="label">from 6 feed-forward passes over 11 to 33 views each</div></div><div class="metric"><div class="value">7.7 GB</div><div class="label">peak GPU memory</div></div></div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Chapters">
+  <div class="wrap"><a href="#overview">1 From pixels to a map</a><a href="#input">2 Six seconds that never happened</a><a href="#frames">3 Stage 1: frames</a><a href="#frontend">4 Stage 2: front-end tracking</a><a href="#submaps">5 Stage 3: submaps, the feed-forward pass</a><a href="#stitching">6 Stage 4: stitching submaps</a><a href="#long-context">7 Stage 5: long-context links</a><a href="#loops">8 Stage 6: loop closure</a><a href="#pose-graph">9 Stage 7: the pose graph</a><a href="#map">10 Stage 8: from depth to a map</a><a href="#viewer">11 Explore it in 3D</a><a href="#speed">12 Speed and scale</a><a href="#choose">13 When to use it</a><a href="#stages">14 Swapping a stage</a></div>
+</nav>
+
+<main class="wrap">
+  <div class="scope"><strong>What this is.</strong> The video is generated from a text prompt by Seedance 2.5; no robot or camera recorded it. AMB3R-SLAM (Wang and Agapito, 2026) runs unmodified from a pinned submodule; our tracer wraps its methods at run time to keep every intermediate result. The images, figures, film and viewer all come from one recorded run; every number on this page is in <code>docs/synthetic_slam/results/</code>. Distances are in the model's own units: one camera cannot measure absolute scale.</div>
+  <section id="overview">
+    <h2>1 · From pixels to a map</h2>
+    <p class="when">What the pipeline does, before the details</p>
+    <div class="prose">
+      <p>SLAM (simultaneous localisation and mapping) answers two questions from a moving camera at once: where was
+        the camera at every moment, and what does the world around it look like? Classical systems such as ORB-SLAM
+        answer them by matching keypoints between frames and refining poses and 3D points together in an iterative
+        optimisation called bundle adjustment.</p>
+      <p>AMB3R-SLAM takes a different route. Its core is a feed-forward 3D model, Depth Anything 3: hand it a batch of
+        images and, in a single forward pass with no iterations, it returns where each camera was, how far away every
+        pixel is, and how confident it is. The catch is that one pass only fits a few dozen frames. The system's
+        contribution is everything around the model: a light front-end that tracks every frame, and a hierarchical
+        backend that stitches hundreds of passes into one consistent map. These are its eight stages.</p>
+    </div>
+    <figure class="diagram" aria-label="The eight stages of AMB3R-SLAM">
+      <svg viewBox="0 0 1160 330" role="img" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+        <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Inter, sans-serif">
+          <g transform="translate(0,10)">
+            <rect width="260" height="122" rx="12" fill="var(--card)" stroke="var(--line)"/>
+            <circle cx="26" cy="27" r="14" fill="var(--accent)"/><text x="26" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on-accent)">1</text>
+            <text x="50" y="33" font-size="17" font-weight="650" fill="var(--text)">Frames</text>
+            <text x="18" y="62" font-size="13.5" fill="var(--muted)"><tspan x="18">1280 × 720 video frames, resized</tspan><tspan x="18" dy="18">to 518 × 294: 37 × 21 patches</tspan></text>
+            <text x="18" y="108" font-size="12" font-weight="650" fill="var(--accent-2)">EACH FRAME</text></g>
+          <g transform="translate(300,10)">
+            <rect width="260" height="122" rx="12" fill="var(--card)" stroke="var(--line)"/>
+            <circle cx="26" cy="27" r="14" fill="var(--accent)"/><text x="26" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on-accent)">2</text>
+            <text x="50" y="33" font-size="17" font-weight="650" fill="var(--text)">Front-end tracking</text>
+            <text x="18" y="62" font-size="13.5" fill="var(--muted)"><tspan x="18">DA3-Small on 4 views: keyframe,</tspan><tspan x="18" dy="18">2 recent, new → a pose per frame</tspan></text>
+            <text x="18" y="108" font-size="12" font-weight="650" fill="var(--accent-2)">EACH FRAME</text></g>
+          <g transform="translate(600,10)">
+            <rect width="260" height="122" rx="12" fill="var(--card)" stroke="var(--accent)" stroke-width="2"/>
+            <circle cx="26" cy="27" r="14" fill="var(--accent)"/><text x="26" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on-accent)">3</text>
+            <text x="50" y="33" font-size="17" font-weight="650" fill="var(--text)">Submaps</text>
+            <text x="18" y="62" font-size="13.5" fill="var(--muted)"><tspan x="18">DA3 Giant, one pass over ~32 views:</tspan><tspan x="18" dy="18">poses, depth, confidence, intrinsics</tspan></text>
+            <text x="18" y="108" font-size="12" font-weight="650" fill="var(--accent-3)">EVERY 32 FRAMES</text></g>
+          <g transform="translate(900,10)">
+            <rect width="260" height="122" rx="12" fill="var(--card)" stroke="var(--line)"/>
+            <circle cx="26" cy="27" r="14" fill="var(--accent)"/><text x="26" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on-accent)">4</text>
+            <text x="50" y="33" font-size="17" font-weight="650" fill="var(--text)">Stitching</text>
+            <text x="18" y="62" font-size="13.5" fill="var(--muted)"><tspan x="18">Sim(3): scale, rotation, shift,</tspan><tspan x="18" dy="18">fitted on the frames they share</tspan></text>
+            <text x="18" y="108" font-size="12" font-weight="650" fill="var(--accent-3)">EACH NEW SUBMAP</text></g>
+          <g transform="translate(0,198)">
+            <rect width="260" height="122" rx="12" fill="var(--card)" stroke="var(--line)"/>
+            <circle cx="26" cy="27" r="14" fill="var(--accent)"/><text x="26" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on-accent)">5</text>
+            <text x="50" y="33" font-size="17" font-weight="650" fill="var(--text)">Long-context links</text>
+            <text x="18" y="62" font-size="13.5" fill="var(--muted)"><tspan x="18">one pass over 24 views from up to</tspan><tspan x="18" dy="18">8 submaps; link only what is covisible</tspan></text>
+            <text x="18" y="108" font-size="12" font-weight="650" fill="var(--accent-3)">EVERY 4 SUBMAPS</text></g>
+          <g transform="translate(300,198)">
+            <rect width="260" height="122" rx="12" fill="var(--card)" stroke="var(--line)"/>
+            <circle cx="26" cy="27" r="14" fill="var(--accent)"/><text x="26" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on-accent)">6</text>
+            <text x="50" y="33" font-size="17" font-weight="650" fill="var(--text)">Loop closure</text>
+            <text x="18" y="62" font-size="13.5" fill="var(--muted)"><tspan x="18">DBoW2 asks "been here before?";</tspan><tspan x="18" dy="18">a joint pass verifies each answer</tspan></text>
+            <text x="18" y="108" font-size="12" font-weight="650" fill="var(--accent-2)">EVERY 5TH FRAME</text></g>
+          <g transform="translate(600,198)">
+            <rect width="260" height="122" rx="12" fill="var(--card)" stroke="var(--line)"/>
+            <circle cx="26" cy="27" r="14" fill="var(--accent)"/><text x="26" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on-accent)">7</text>
+            <text x="50" y="33" font-size="17" font-weight="650" fill="var(--text)">Pose graph</text>
+            <text x="18" y="62" font-size="13.5" fill="var(--muted)"><tspan x="18">one node per submap; optimise</tspan><tspan x="18" dy="18">all Sim(3) links together</tspan></text>
+            <text x="18" y="108" font-size="12" font-weight="650" fill="var(--text)">AT THE END</text></g>
+          <g transform="translate(900,198)">
+            <rect width="260" height="122" rx="12" fill="var(--card)" stroke="var(--line)"/>
+            <circle cx="26" cy="27" r="14" fill="var(--accent)"/><text x="26" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="var(--on-accent)">8</text>
+            <text x="50" y="33" font-size="17" font-weight="650" fill="var(--text)">Map</text>
+            <text x="18" y="62" font-size="13.5" fill="var(--muted)"><tspan x="18">drop sky, edges, low confidence;</tspan><tspan x="18" dy="18">place every pixel with its submap</tspan></text>
+            <text x="18" y="108" font-size="12" font-weight="650" fill="var(--text)">AT THE END</text></g>
+          <g stroke="var(--muted)" stroke-width="2" fill="none" marker-end="url(#arr)">
+            <path d="M262,71 L296,71"/><path d="M562,71 L596,71"/><path d="M862,71 L896,71"/>
+            <path d="M1030,134 C1030,166 130,160 130,194"/>
+            <path d="M262,259 L296,259"/><path d="M562,259 L596,259"/><path d="M862,259 L896,259"/>
+          </g>
+        </g>
+      </svg>
+      <figcaption>Stages 1 and 2 run for every frame, so the robot always has a pose. Stages 3 to 6 run as frames
+        accumulate. Stages 7 and 8 run once the video ends; the upstream default optimises the pose graph offline.</figcaption>
+    </figure>
+    <div class="spec-cards">
+      <div class="card"><h4>Input</h4><ul>
+        <li>One camera, plain RGB: no depth sensor, no IMU, no LiDAR</li>
+        <li>Uncalibrated: the model estimates the focal length</li>
+        <li>Any frame rate; below 10 Hz the run is told the rate</li>
+      </ul></div>
+      <div class="card"><h4>Models</h4><ul>
+        <li>Front-end: DA3-Small, every frame</li>
+        <li>Backend: DA3-Nested-Giant-Large-1.1, encoder weights in bf16 (2.68 GB)</li>
+        <li>Both are feed-forward: one pass, no iterations, no training on this scene</li>
+      </ul></div>
+      <div class="card"><h4>Output</h4><ul>
+        <li>A camera pose for every frame</li>
+        <li>A dense coloured point cloud, every kept pixel of the mapped frames</li>
+        <li>Here, every stage's intermediate results too, from our tracer</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="input">
+    <h2>2 · Six seconds that never happened</h2>
+    <p class="when">A text prompt, one generation, one take</p>
+    <div class="prose">
+      <p>We wanted footage from a small robot's point of view in an industrial setting, and no robot to film it with.
+        Seedance 2.5 generated it from a prompt: a camera 30 cm above the ground rolling down a dirt lane between
+        stacked wrecks, curving left past tyres and a pickup truck, then past a car with its hood open. One
+        generation at 720p, 6 s long, took 178 s on the provider's side, and we used the first result.</p>
+      <p>The video is 1280 × 720 at 24 fps: 145 frames. Nothing else goes into SLAM: no camera calibration, no depth,
+        no motion sensor.</p>
+    </div>
+    <figure><img src="media/filmstrip.webp" alt="Eight frames of the generated junkyard video, from the dirt lane between stacked cars to the pickup truck and an open-hood car" loading="lazy">
+      <figcaption>Eight of the 145 frames. The prompt and the generation record are in
+        <code>docs/synthetic_slam/</code>.</figcaption></figure>
+  </section>
+
+  <section id="frames">
+    <h2>3 · Stage 1: frames</h2>
+    <p class="when">What the model actually sees</p>
+    <div class="prose">
+      <p>Depth Anything 3 is a vision transformer: it cuts each image into 14 × 14-pixel patches and reasons about
+        those. AMB3R-SLAM resizes every frame so the long side is 518 pixels, here 518 × 294, a grid of 37 × 21
+        patches. Fine detail below a patch is blurred into its neighbourhood; this is why the map is soft at small
+        scales.</p>
+      <p>The frame rate sets how many frames each submap spans. At 10 Hz or more, the backend takes about one frame
+        in four; a 24 fps clip is well above that.</p>
+    </div>
+    <figure><img src="media/frames.webp" alt="A generated frame at full size beside the 518 by 294 model input with its patch grid" loading="lazy">
+      <figcaption>Frame 72 at full size, and as the model receives it. The orange square is one 14-pixel patch.</figcaption></figure>
+  </section>
+
+  <section id="frontend">
+    <h2>4 · Stage 2: front-end tracking</h2>
+    <p class="when">A pose for every frame, from four views</p>
+    <div class="prose">
+      <p>For each new frame, the small model DA3-Small sees four images together: the current keyframe, the two most
+        recent frames and the new one. It returns their relative poses; the front-end fits a Sim(3) transform from
+        the frames it already placed, and that gives the new frame's pose. It ran 144 times, once per frame after the
+        first, for 3.89 s of model time.</p>
+      <p>A keyframe is the reference the tracker leans on. When less than 35% of the keyframe is still visible in the
+        new frame, or 32 frames have passed, the new frame becomes the keyframe. That happened 8 times: at frames 0,
+        17, 33, 48, 64, 83, 110 and 141.</p>
+    </div>
+    <figure><img src="media/frontend.webp" alt="Four frames of one front-end pass; the overlap curve with keyframe promotions; the front-end's scale estimate over time; the final path from above" loading="lazy">
+      <figcaption>Top: the four views of the pass that tracked frame 58. Bottom: how much of the keyframe stays in
+        view, falling until a new keyframe is chosen; the front-end's own scale estimate (log scale), with the
+        frames where the backend re-anchored it; and the final camera path.</figcaption></figure>
+    <div class="failure"><strong>The front-end drifts in scale.</strong> Its scale estimate should stay roughly
+      constant. Here it climbed from 1.0 to 140.6 by frame 96, peaking at 147, so its live path grew much faster than
+      the robot moved. The final path does not use these poses: every 32 frames the backend re-anchors the front-end
+      onto its own submap poses (at frames 31, 63, 95, 96, 127 and 144), and the final trajectory comes from the
+      submaps alone. The front-end is the first stage we would try to improve.</div>
+  </section>
+
+  <section id="submaps">
+    <h2>5 · Stage 3: submaps, the feed-forward pass</h2>
+    <p class="when">32 views in, poses and depth for every pixel out</p>
+    <div class="prose">
+      <p>This is where the 3D comes from. Every 32 frames the backend takes the last 96 frames, keeps the front-end's
+        most confident frame in each group of four, adds frames so no gap exceeds four, and hands those 32 or 33
+        views to DA3-Nested-Giant-Large in one pass. Out come, for every view, a camera pose, a depth for every pixel,
+        a confidence for every pixel, the camera intrinsics and a sky mask. That set, in its own coordinate frame
+        and units, is a submap.</p>
+      <p>Each pass took 1.71 to 1.78 s on the RTX 4090. Two short warm-up passes (11 and 21 views, at frames 31 and
+        63) gave the robot a map before the first full window; both were replaced. The model estimated a focal
+        length of about 248 × 240 pixels at the 518 × 294 input, a horizontal field of view of about 92°, which suits a
+        low robot camera.</p>
+    </div>
+    <figure><img src="media/submap.webp" alt="Six views of submap 2 with their depth maps, confidence maps and sky masks" loading="lazy">
+      <figcaption>Six of submap 2's 32 views. Depth: warm is near. Confidence: brighter is surer; the ground is the
+        surest, sky and distant stacks the least. Teal marks the pixels the model called sky.</figcaption></figure>
+    <figure><img src="media/submap3d.webp" alt="Submap 2's points in 3D with its 32 camera frustums along the path" loading="lazy">
+      <figcaption>Submap 2 alone, from one pass: its views' depths placed with its own poses, with every second
+        camera drawn as a teal frustum.</figcaption></figure>
+  </section>
+
+  <section id="stitching">
+    <h2>6 · Stage 4: stitching submaps</h2>
+    <p class="when">Sim(3) on shared frames</p>
+    <div class="prose">
+      <p>Every submap has its own origin and its own scale: a single camera cannot tell a small near scene from a
+        large far one. But consecutive submaps overlap, and the frames they share appear in both. Fitting their two
+        reconstructions of those frames gives a Sim(3) transform (a scale, a rotation and a translation) that places
+        the new submap in the old one's frame. Scale comes from depth ratios; rotation and translation from the
+        shared cameras.</p>
+      <p>Each new submap is aligned to its predecessor, and to the one before that when they still share frames. The
+        five alignments here shared 16 to 32 frames and fitted with relative residuals of 0.41% to 1.61%, in 0.02 s
+        in total.</p>
+    </div>
+    <figure><img src="media/spans.webp" alt="A timeline of the six submap passes, their chosen frames, and the alignments between overlapping submaps" loading="lazy">
+      <figcaption>Each row is one model pass; dots are the frames it used. Arrows are alignments, with the frames
+        shared and the fit residual. The two hatched passes are the warm-up submaps that were replaced.</figcaption></figure>
+    <figure><img src="media/submaps3d.webp" alt="The final map coloured by the submap each point came from, with the camera path in white" loading="lazy">
+      <figcaption>The map coloured by submap. The four reconstructions overlap and line up where they share frames.</figcaption></figure>
+  </section>
+
+  <section id="long-context">
+    <h2>7 · Stage 5: long-context links</h2>
+    <p class="when">Checking far-apart submaps against each other</p>
+    <div class="prose">
+      <p>Alignment between neighbours accumulates small errors, like a chain. Long-context mapping adds links between
+        submaps that are not neighbours: one extra pass over 24 frames spread across a window of up to eight
+        submaps. If two distant submaps both fit that pass well, the pass links them directly. A link is only kept
+        if the two submaps actually see the same place, which ALIKED keypoints test: at least 20% of their frame
+        pairs must share enough matched keypoints.</p>
+      <p>Here the window covered all four submaps in one 24-view pass (1.23 s). The only far-apart pair, submaps 0
+        and 3, failed the test: 1 of 72 frame pairs (1.4%). That is right: the robot's first frames and its last
+        frames look at different parts of the yard.</p>
+    </div>
+    <figure><img src="media/longcontext.webp" alt="The 24 frames of the long-context window and the closest frame pair between submap 0 and submap 3" loading="lazy">
+      <figcaption>Top: the window's 24 frames, bordered by the submap each was compared for (grey: shared by both).
+        Bottom: the most similar pair across the two submaps, frames 28 and 96.</figcaption></figure>
+  </section>
+
+  <section id="loops">
+    <h2>8 · Stage 6: loop closure</h2>
+    <p class="when">"have I been here before?"</p>
+    <div class="prose">
+      <p>On long routes, the strongest correction comes from recognising a place seen earlier. Every fifth frame the
+        backend adds the image to a DBoW2 bag-of-words database (ORB features against a fixed vocabulary) and asks
+        for the most similar earlier frame at least 100 frames back. A candidate is then verified by reconstructing
+        both places together in one pass, and checking that they overlap and fit their own submaps before it
+        becomes a loop edge.</p>
+      <p>This clip has 29 probes and no revisits: the robot never comes back, so no candidate was proposed. On the
+        13-minute Oxford walk in chapter 12, the same stage closed one loop.</p>
+    </div>
+  </section>
+
+  <section id="pose-graph">
+    <h2>9 · Stage 7: the pose graph</h2>
+    <p class="when">One optimisation over every link</p>
+    <div class="prose">
+      <p>Each submap becomes a node; each alignment, long-context link and loop becomes an edge that says where one
+        node should sit relative to another. A robust Sim(3) optimisation then moves the nodes until the edges agree
+        as well as they can. With loops, this is where accumulated drift is corrected.</p>
+      <p>Here the graph has 4 nodes and 5 edges and no loops, and the chain of alignments already agreed: the
+        optimisation moved no submap by more than 0.11% of the path length, or changed its scale by more than 0.59%,
+        in 0.14 s.</p>
+    </div>
+    <figure><img src="media/graph.webp" alt="The pose graph: four submap nodes with adjacent and span edges and a rejected long-context candidate; bars of how much each node moved" loading="lazy">
+      <figcaption>Left: the graph, with each edge's fit residual. Right: what the final optimisation changed.</figcaption></figure>
+  </section>
+
+  <section id="map">
+    <h2>10 · Stage 8: from depth to a map</h2>
+    <p class="when">Which pixels become points</p>
+    <div class="prose">
+      <p>Each submap pass predicted depth for every pixel. To build the map, the recorder takes one frame in four,
+        prefers the submap where that frame sits nearest the middle, and drops three kinds of pixel: those below the
+        20th percentile of the frame's confidence, those on a depth edge (a jump of more than 3% within 3 × 3
+        pixels, where foreground and background blur together), and sky. The rest are placed in the world with
+        their submap's final Sim(3).</p>
+      <p>From 37 frames that gives 3,330,749 points, and 212,779 when sampling every fourth pixel; exporting took
+        0.20 s.</p>
+    </div>
+    <figure><img src="media/filter.webp" alt="One frame and the same frame with dropped pixels coloured: sky, depth edges and low confidence" loading="lazy">
+      <figcaption>Frame 82: 56% of its pixels kept; 30% sky and 14% depth edges dropped. The confidence cut removes
+        nothing in this frame: at least a fifth of its pixels share the lowest confidence value, and the cut keeps
+        ties.</figcaption></figure>
+    <div class="grid2">
+      <figure><img src="media/mapchase.webp" alt="The final map from behind the robot's starting point, with keyframe frustums along the path" loading="lazy">
+        <figcaption>The finished map from behind the start, with the 8 keyframes as yellow frustums.</figcaption></figure>
+      <figure><img src="media/maphigh.webp" alt="The final map from above and to the side" loading="lazy">
+        <figcaption>The same map from above: the lane, the car stacks, the tyre piles and the pickup.</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="viewer">
+    <h2>11 · Explore it in 3D</h2>
+    <p class="when">Every stage as an overlay, synced with the video</p>
+    <div class="prose">
+      <p>The viewer replays the run. By default it follows behind the SLAM camera: the yellow frustum is the pose
+        SLAM computed, with the frame it was looking at on its image plane. Every recorded stage is a layer you can
+        switch on: the front-end's four-view window, keyframes, the latest submap pass, the pose graph, loop probes,
+        and the front-end's drifting live estimate. Colour the points by photo, by submap, by confidence or by time.
+        Reveal them as the camera films them, or only once the backend has committed their submap. Ego view looks
+        through the computed camera, with a slider to blend the real frame over the map.</p>
+    </div>
+    <figure class="embed">
+      <iframe src="viewer/" title="SLAM trace viewer" loading="lazy" allow="fullscreen"></iframe>
+      <figcaption>1,000,000 of the map's points, the 145 poses and every stage's record, in three.js. Space plays and
+        pauses; the arrow keys step one frame. <a href="viewer/" target="_blank" rel="noopener">Open the viewer full
+        screen</a>.</figcaption>
+    </figure>
+  </section>
+
+  <section id="speed">
+    <h2>12 · Speed and scale</h2>
+    <p class="when">Where the time goes, and a real 13-minute walk</p>
+    <div class="prose">
+      <p>The whole run took 19.85 s for 145 frames, 7.3 frames per second, after 10.9 s to load the models. The two
+        models' passes took 13.7 s of it. Throughput, not the video's frame rate, decides whether this is real time:
+        at about 6 to 7 frames per second it keeps up with a camera sampled at 5 Hz, and falls behind a 24 fps clip
+        by 3.3×.</p>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>Stage</th><th class="num">Seconds</th><th>What ran</th></tr>
+      <tr><td>2 · Front-end</td><td class="num">4.75</td><td>144 DA3-Small passes over 2 to 4 views (3.89 s in the model)</td></tr>
+      <tr class="hl"><td>3 · Submaps</td><td class="num">8.86</td><td>6 DA3 Giant passes over 11 to 33 views</td></tr>
+      <tr><td>4 · Stitching</td><td class="num">0.02</td><td>5 Sim(3) alignments</td></tr>
+      <tr><td>5 · Long context</td><td class="num">1.61</td><td>1 pass over 24 views, 1 covisibility check</td></tr>
+      <tr><td>6 · Loops</td><td class="num">0.28</td><td>29 retrieval probes</td></tr>
+      <tr><td>7 · Pose graph</td><td class="num">0.14</td><td>4 nodes, 5 edges</td></tr>
+      <tr><td>Everything else</td><td class="num">4.20</td><td>image handling, re-anchoring, bookkeeping</td></tr>
+      <tr><td>8 · Map export, after the run</td><td class="num">0.20</td><td>3,330,749 points</td></tr>
+    </table></div>
+    <div class="prose">
+      <p>Before this project we ran the same code on a real recording, for scale: the 13-minute Christ Church walk
+        from the Oxford Spires dataset (2024), one camera of a handheld rig at 5 Hz, 816 m on foot, with laser-scanned
+        ground truth.</p>
+    </div>
+    <div class="result-strip">
+      <div class="tile"><div class="big">3,961<small>frames</small></div><div class="what">800 s of camera at 4.95 Hz, one camera</div><div class="vs">processed in 693.6 s: 1.15× faster than the recording</div></div>
+      <div class="tile"><div class="big">1.86<small>m</small></div><div class="what">trajectory error over an 816 m walk</div><div class="vs">after a Sim(3) fit; the unaligned map is 1.43× off in scale</div></div>
+      <div class="tile"><div class="big">9.1<small>GB</small></div><div class="what">peak GPU memory for 3,961 frames</div><div class="vs">7.7 GB for this clip's 145: memory stays bounded</div></div>
+      <div class="tile"><div class="big">1<small>loop</small></div><div class="what">closed on the Oxford walk</div><div class="vs">0 here: the junkyard robot never returns</div></div>
+    </div>
+  </section>
+
+  <section id="choose">
+    <h2>13 · When to use it</h2>
+    <p class="when">What it is good at, and where something else fits better</p>
+    <div class="spec-cards">
+      <div class="card"><h4>A good fit</h4><ul>
+        <li>Ordinary video from one camera, even uncalibrated: a phone, a dashcam, a drone, a generated clip</li>
+        <li>You want a dense coloured map, not sparse feature points</li>
+        <li>Long routes: memory stays bounded and loops correct drift</li>
+        <li>Scenes with moving people or cars: there is no bundle adjustment that assumes a static world</li>
+        <li>A GPU with about 10 GB or more</li>
+      </ul></div>
+      <div class="card"><h4>A poor fit</h4><ul>
+        <li>Tracking at 30 Hz or more, for control: about 6 to 7 frames per second here</li>
+        <li>Running on a robot's CPU or an embedded board: classical visual-inertial SLAM is far lighter</li>
+        <li>True metric scale from one camera: use its RGB-D, stereo or LiDAR modes, or an IMU</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section id="stages">
+    <h2>14 · Swapping a stage</h2>
+    <p class="when">Where each stage lives, and what could replace it</p>
+    <div class="prose">
+      <p>The tracer (<code>src/world_sandbox/slam/trace.py</code>) wraps the upstream methods below without editing
+        them, and saves what each returns. That record is the contract for replacing a stage: a new front-end, model
+        or retrieval method can be run on the same video and compared stage by stage, in the same figures and the
+        same viewer.</p>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>Stage</th><th>Upstream code</th><th>What the trace keeps</th><th>Could be swapped for</th></tr>
+      <tr><td>1 · Frames</td><td><code>datasets/demo.py</code></td><td>the 145 input images at 518 × 294</td><td>another resolution or undistortion</td></tr>
+      <tr><td>2 · Front-end</td><td><code>FrontEnd.track</code></td><td>pose, keyframe, views, overlap and scale per frame</td><td>a stronger small model, IMU fusion, classical odometry</td></tr>
+      <tr class="hl"><td>3 · Submaps</td><td><code>_new_submap</code> → <code>model.DA3</code></td><td>poses, depth, confidence, sky and intrinsics per view</td><td>VGGT-Ω (<code>--model_name omega</code>, built in), other feed-forward models</td></tr>
+      <tr><td>4 · Stitching</td><td><code>_align_pair</code>, <code>tools/align.py</code></td><td>each Sim(3), frames shared, residual</td><td>other robust estimators</td></tr>
+      <tr><td>5 · Long context</td><td><code>_long_context_window</code>, <code>tools/covis.py</code></td><td>windows, covisibility scores, edges</td><td>another covisibility test</td></tr>
+      <tr><td>6 · Loops</td><td><code>_loop_query</code>, <code>_verify_loop</code></td><td>probes, scores, candidates, verdicts</td><td>MegaLoc or SALAD retrieval (built in)</td></tr>
+      <tr><td>7 · Pose graph</td><td><code>_optimise</code>, <code>tools/pose_graph.py</code></td><td>submap poses before and after</td><td>another optimiser, online mode</td></tr>
+      <tr><td>8 · Map</td><td><code>MapRecorder</code> (our subclass)</td><td>points with source frame, submap and confidence</td><td>meshes, Gaussian splats</td></tr>
+    </table></div>
+    <ol class="next-steps">
+      <li><strong>Fix the front-end's scale</strong>Test a stronger front-end or more frequent re-anchoring, and measure
+        the live path against the final one.</li>
+      <li><strong>A longer generated loop</strong>A clip that returns to its start, to exercise loop closure and the
+        pose graph on synthetic input.</li>
+      <li><strong>VGGT-Ω against Depth Anything 3</strong>The same video and tracer with the other backend model,
+        compared stage by stage.</li>
+      <li><strong>The viewer on a real capture</strong>The tracer and viewer work on any folder of frames.</li>
+    </ol>
+  </section>
+
+</main>
+
+<footer class="wrap"><p>Source, documentation and recorded results: <a href="https://github.com/rozgo/world-sandbox">rozgo/world-sandbox</a>, <a href="https://github.com/rozgo/world-sandbox/tree/main/docs/synthetic_slam"><code>docs/synthetic_slam/</code></a>. SLAM: <a href="https://github.com/HengyiWang/amb3r-slam">AMB3R-SLAM</a> by Hengyi Wang and Lourdes Agapito (<a href="https://arxiv.org/abs/2609.19518">arXiv 2609.19518</a>, Apache 2.0), pinned at commit <code>5418465</code>. Models: <a href="https://github.com/ByteDance-Seed/Depth-Anything-3">Depth Anything 3</a>, DA3-Small (Apache 2.0) and DA3-Nested-Giant-Large-1.1 (CC BY-NC 4.0). Loop retrieval: DBoW2 with the ORB-SLAM3 vocabulary; covisibility: ALIKED; each under its own licence in the submodule's <code>thirdparty/</code>. Video: ByteDance Seedance 2.5 text-to-video through WaveSpeed. Viewer: <a href="https://threejs.org">three.js</a> r170 (MIT). This is an independent illustration, not a result of those authors.</p></footer>
+</body>
+</html>
