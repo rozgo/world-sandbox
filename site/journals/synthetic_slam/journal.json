@@ -1,0 +1,136 @@
+{
+ "title": "Synthetic SLAM Journal",
+ "heading": "From six seconds of generated video to a 3D map, one stage at a time",
+ "eyebrow": "Engineering journal · October 8, 2026 · AMB3R-SLAM · Depth Anything 3 · Seedance 2.5 · RTX 4090",
+ "lede": "A text prompt became a 6 s video of a small robot rolling through a junkyard. AMB3R-SLAM turned its 145 frames, plain RGB from one uncalibrated camera, into a camera path and a 3.33 million-point coloured map in 19.9 s on one GPU. We opened the pipeline into eight stages, recorded what each one produced, and built a viewer that replays them all in 3D.",
+ "description": "A generated junkyard video, run through AMB3R-SLAM stage by stage: front-end tracking, feed-forward submaps, Sim(3) stitching, long-context links, loop retrieval, pose graph and map, with a 3D replay viewer.",
+ "hero": {
+  "media": "film",
+  "caption": "The SLAM camera (yellow frustum, showing the frame it sees) and its path (orange) as the map grows, with the generated input video in the corner, at 1×; then an orbit of the finished map. Rendered on the CPU from the recorded run; each point appears when the camera passes the frame it came from."
+ },
+ "metrics": [
+  {
+   "value": "145 frames",
+   "label": "6 s of generated 1280 × 720 video at 24 fps: the only input"
+  },
+  {
+   "value": "19.9 s",
+   "label": "the whole SLAM run on one RTX 4090, 7.3 frames per second"
+  },
+  {
+   "value": "3.33 M",
+   "label": "points in the map, each kept pixel of 37 frames"
+  },
+  {
+   "value": "4 submaps",
+   "label": "from 6 feed-forward passes over 11 to 33 views each"
+  },
+  {
+   "value": "7.7 GB",
+   "label": "peak GPU memory"
+  }
+ ],
+ "scope": "<strong>What this is.</strong> The video is generated from a text prompt by Seedance 2.5; no robot or camera recorded it. AMB3R-SLAM (Wang and Agapito, 2026) runs unmodified from a pinned submodule; our tracer wraps its methods at run time to keep every intermediate result. The images, figures, film and viewer all come from one recorded run; every number on this page is in <code>docs/synthetic_slam/results/</code>. Distances are in the model's own units: one camera cannot measure absolute scale.",
+ "footer": "<p>Source, documentation and recorded results: <a href=\"https://github.com/rozgo/world-sandbox\">rozgo/world-sandbox</a>, <a href=\"https://github.com/rozgo/world-sandbox/tree/main/docs/synthetic_slam\"><code>docs/synthetic_slam/</code></a>. SLAM: <a href=\"https://github.com/HengyiWang/amb3r-slam\">AMB3R-SLAM</a> by Hengyi Wang and Lourdes Agapito (<a href=\"https://arxiv.org/abs/2609.19518\">arXiv 2609.19518</a>, Apache 2.0), pinned at commit <code>5418465</code>. Models: <a href=\"https://github.com/ByteDance-Seed/Depth-Anything-3\">Depth Anything 3</a>, DA3-Small (Apache 2.0) and DA3-Nested-Giant-Large-1.1 (CC BY-NC 4.0). Loop retrieval: DBoW2 with the ORB-SLAM3 vocabulary; covisibility: ALIKED; each under its own licence in the submodule's <code>thirdparty/</code>. Video: ByteDance Seedance 2.5 text-to-video through WaveSpeed. Viewer: <a href=\"https://threejs.org\">three.js</a> r170 (MIT). This is an independent illustration, not a result of those authors.</p>",
+ "card": {
+  "kicker": "SLAM · Depth Anything 3 · RTX 4090",
+  "line": "Six seconds of generated robot video become a camera path and a 3.33 M-point map in 19.9 s, with every stage of AMB3R-SLAM opened up and replayable in 3D.",
+  "tags": [
+   "SLAM",
+   "feed-forward 3D",
+   "generated video",
+   "3D viewer"
+  ],
+  "poster": "previews/synthetic_slam/junkyard_v1/hub_card.png"
+ },
+ "media": {
+  "film": {
+   "src": "previews/synthetic_slam/junkyard_v1/film.mp4",
+   "max_width": 1600,
+   "crf": 27,
+   "poster_t": 3.0
+  },
+  "filmstrip": {
+   "src": "previews/synthetic_slam/junkyard_v1/input_filmstrip.png",
+   "max_width": 1600
+  },
+  "frames": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage1_frames.png",
+   "max_width": 1600
+  },
+  "frontend": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage2_frontend.png",
+   "max_width": 1600
+  },
+  "submap": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage3_submap.png",
+   "max_width": 1600
+  },
+  "submap3d": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage3_submap3d.jpg",
+   "max_width": 1600
+  },
+  "spans": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage4_spans.png",
+   "max_width": 1600
+  },
+  "submaps3d": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage4_submaps3d.jpg",
+   "max_width": 1600
+  },
+  "longcontext": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage5_long_context.png",
+   "max_width": 1600
+  },
+  "graph": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage7_graph.png",
+   "max_width": 1600
+  },
+  "filter": {
+   "src": "previews/synthetic_slam/junkyard_v1/stage8_filter.png",
+   "max_width": 1600
+  },
+  "mapchase": {
+   "src": "previews/synthetic_slam/junkyard_v1/map_chase.jpg",
+   "max_width": 1600
+  },
+  "maphigh": {
+   "src": "previews/synthetic_slam/junkyard_v1/map_high.jpg",
+   "max_width": 1600
+  }
+ },
+ "viewer": {
+  "data": "previews/synthetic_slam/junkyard_v1/viewer",
+  "video": "previews/synthetic_slam/junkyard_v1/input.mp4"
+ },
+ "theme": {
+  "scheme": "dark",
+  "theme_color": "#0f1113",
+  "tokens": {
+   "bg": "#0f1113",
+   "text": "#e9e6e1",
+   "muted": "#a19c94",
+   "card": "#171a1d",
+   "line": "#2a2e33",
+   "link": "#ef9a68",
+   "chip": "#22262a",
+   "soft": "#1b2524",
+   "bad": "#e0524f",
+   "bad-soft": "#2b1a18",
+   "accent": "#e0703a",
+   "accent-2": "#4fb3a9",
+   "accent-3": "#e8b931",
+   "on-accent": "#140b06",
+   "hero": "linear-gradient(125deg, #0c0d0f 0%, #17191c 42%, #33221a 78%, #5a3018 100%)",
+   "hero-text": "#f1ede6",
+   "film": "#08090a",
+   "metric": "rgba(255, 255, 255, .06)",
+   "toc": "rgba(15, 17, 19, .92)",
+   "tile-1": "linear-gradient(135deg, #b4542a, #6b2f16)",
+   "tile-2": "linear-gradient(135deg, #2f7f78, #1b4744)",
+   "tile-3": "linear-gradient(135deg, #8a7224, #4f4014)",
+   "tile-4": "linear-gradient(135deg, #3a4148, #1f2328)",
+   "tile-text": "#f6f2ec"
+  }
+ }
+}

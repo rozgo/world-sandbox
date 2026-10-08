@@ -1,0 +1,249 @@
+{
+ "frames": {
+  "folder": "frames",
+  "count": 145,
+  "fps": 24.0,
+  "resolution": [
+   518,
+   294
+  ]
+ },
+ "model": {
+  "backend": "da3",
+  "frontend": "depth-anything/DA3-SMALL",
+  "device": "NVIDIA GeForce RTX 4090"
+ },
+ "timing": {
+  "load_s": 10.92734073700558,
+  "run_s": 19.85182716899726,
+  "fps": 7.30411355920162,
+  "stages_s": {
+   "2 front-end": 4.7520593070366886,
+   "3 submaps": 8.8580532130145,
+   "4 alignment": 0.0194928870187141,
+   "5 long context": 1.6098221089923754,
+   "6 loops": 0.27754579785687383,
+   "7 pose graph": 0.13934913800039794,
+   "8 map": 0.2005951909959549
+  },
+  "model_passes_s": {
+   "frontend": 3.887613952916581,
+   "backend": 9.834989089984447
+  }
+ },
+ "peak_gpu_gb": 7.747657216,
+ "counts": {
+  "submaps": 4,
+  "submap_passes": 6,
+  "frontend_passes": 144,
+  "backend_passes": 7,
+  "keyframes_promoted": 8,
+  "align_edges": 5,
+  "span_edges": 2,
+  "long_context_windows": 1,
+  "long_context_edges": 0,
+  "probes": 29,
+  "loop_candidates": 0,
+  "loops": 0,
+  "map_points": 3330749,
+  "map_points_stride": 212779
+ },
+ "path_length_model_units": 10.181111400422186,
+ "keyframes": [
+  0,
+  17,
+  33,
+  48,
+  64,
+  83,
+  110,
+  141
+ ],
+ "submaps": [
+  {
+   "index": null,
+   "start": 0,
+   "end": 32,
+   "seconds": 0.584153731004335,
+   "replaced": true,
+   "views": 11
+  },
+  {
+   "index": null,
+   "start": 0,
+   "end": 64,
+   "seconds": 1.043631958993501,
+   "replaced": true,
+   "views": 21
+  },
+  {
+   "index": 0,
+   "start": 0,
+   "end": 96,
+   "seconds": 1.7116467809973983,
+   "replaced": false,
+   "views": 32
+  },
+  {
+   "index": 1,
+   "start": 1,
+   "end": 97,
+   "seconds": 1.7726603600021917,
+   "replaced": false,
+   "views": 33
+  },
+  {
+   "index": 2,
+   "start": 32,
+   "end": 128,
+   "seconds": 1.7183076779911062,
+   "replaced": false,
+   "views": 32
+  },
+  {
+   "index": 3,
+   "start": 49,
+   "end": 145,
+   "seconds": 1.775594873004593,
+   "replaced": false,
+   "views": 33
+  }
+ ],
+ "align": [
+  {
+   "a": 0,
+   "b": 1,
+   "shared": 32,
+   "residual_rel": 0.00407563389085464
+  },
+  {
+   "a": 1,
+   "b": 2,
+   "shared": 22,
+   "residual_rel": 0.014670259825042106
+  },
+  {
+   "a": 0,
+   "b": 2,
+   "shared": 21,
+   "residual_rel": 0.015563166214053912
+  },
+  {
+   "a": 2,
+   "b": 3,
+   "shared": 26,
+   "residual_rel": 0.013143006706373394
+  },
+  {
+   "a": 1,
+   "b": 3,
+   "shared": 16,
+   "residual_rel": 0.01613826399364577
+  }
+ ],
+ "long_context": {
+  "windows": [
+   {
+    "submaps": [
+     0,
+     1,
+     2,
+     3
+    ],
+    "frames": [
+     3,
+     10,
+     14,
+     20,
+     28,
+     32,
+     39,
+     47,
+     52,
+     59,
+     64,
+     71,
+     78,
+     84,
+     91,
+     96,
+     104,
+     108,
+     115,
+     120,
+     128,
+     134,
+     138,
+     144
+    ],
+    "edges": []
+   }
+  ],
+  "covis": [
+   {
+    "frames_a": [
+     3,
+     10,
+     14,
+     20,
+     28,
+     32,
+     39,
+     47,
+     52,
+     59,
+     64,
+     71,
+     78,
+     84,
+     91
+    ],
+    "frames_b": [
+     52,
+     59,
+     64,
+     71,
+     78,
+     84,
+     91,
+     96,
+     104,
+     108,
+     115,
+     120,
+     128,
+     134,
+     138,
+     144
+    ],
+    "max": 0.050387596899224806,
+    "mean": 0.00842222135679421,
+    "n_pairs": 72,
+    "n_strong": 1,
+    "frac_strong": 0.013888888888888888,
+    "raw_max": 0.08527131782945736,
+    "best": [
+     28,
+     96
+    ]
+   }
+  ],
+  "min_covis": 0.2
+ },
+ "loops": {
+  "probes": 29,
+  "matches": 0,
+  "candidates": 0,
+  "accepted": 0
+ },
+ "intrinsics_median": {
+  "fx": 248.36221313476562,
+  "fy": 239.7579345703125,
+  "cx": 259.0,
+  "cy": 147.0,
+  "image": [
+   518,
+   294
+  ]
+ }
+}

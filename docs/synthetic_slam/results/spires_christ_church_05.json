@@ -1,0 +1,51 @@
+{
+ "what": "AMB3R-SLAM, monocular and uncalibrated, on one real sequence, for scale; run before the synthetic project",
+ "dataset": "Oxford Spires (2024), sequence 2024-03-20-christ-church-05, Alphasense cam0 only",
+ "command": "python run.py --dataset spires --data_path data/spires --only 2024-03-20-christ-church-05 --save_map --verbose (upstream run.py, commit 5418465)",
+ "hardware": "NVIDIA GeForce RTX 4090, torch 2.14.1+cu130",
+ "input": {
+  "frames": 3961,
+  "camera_rate_hz_measured": 4.95,
+  "duration_s": 799.8,
+  "image": [
+   1440,
+   1080
+  ],
+  "model_input": [
+   518,
+   378
+  ],
+  "note": "rate and duration measured from cam0 timestamps in images.zip"
+ },
+ "ground_truth": {
+  "path_length_m": 816,
+  "duration_s": 800,
+  "note": "summed from the sequence's processed/trajectory/gt-tum.txt (laser-scan registered)"
+ },
+ "result": {
+  "time_s": 693.5842354297638,
+  "fps": 5.7109141149173555,
+  "peak_mem_gb": 9.108474368,
+  "loops": 1,
+  "keyframes": 123,
+  "ate": 1.8567942436658533,
+  "ate_kf": 1.856425651549959
+ },
+ "upstream_results_json": {
+  "scene": "",
+  "frames": 3961,
+  "keyframes": 123,
+  "time_s": 693.5842354297638,
+  "fps": 5.7109141149173555,
+  "loops": 1,
+  "loop_reject_reasons": {
+   "windows do not overlap": 16
+  },
+  "peak_mem_gb": 9.108474368,
+  "ate": 1.8567942436658533,
+  "ate_kf": 1.856425651549959,
+  "ate_se3": 13.172840651392672,
+  "sim3_scale": 1.4283470867084824
+ },
+ "config_fps_used": 20.0
+}

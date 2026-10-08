@@ -1,0 +1,19 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Generated, rebuilt or too large for Git
+build/
+outputs/
+data/
+
+# OS
+.DS_Store

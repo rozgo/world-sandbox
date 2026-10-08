@@ -1,0 +1,24 @@
+{
+ "model": "bytedance/seedance-2.5/text-to-video",
+ "request": {
+  "prompt": "Low first-person view from a small wheeled robot, camera 30 cm above the ground, rolling slowly along a dirt lane through an auto junkyard between stacks of wrecked, rusted cars.\n0-2 s: the robot rolls forward down the lane; crushed sedans stacked three high on both sides, flaking paint, shattered windows, rusted rims and loose tyres on the ground.\n2-4 s: it curves gently left around a pile of old tyres; a faded yellow pickup truck with no doors and a stack of flattened car bodies come into view; a chain-link fence and a tall crane stand in the background.\n4-6 s: it continues forward past an old car with its hood open and engine exposed, puddles on the dirt reflecting the sky.\nSmooth, steady motion at walking pace, slight vibration from the uneven ground, one continuous shot with no cuts. Static scene: nothing moves except the robot, no people. Overcast daylight, soft even lighting, sharp focus, photorealistic. No audio, no text, no subtitles.",
+  "duration": 6,
+  "resolution": "720p",
+  "aspect_ratio": "16:9",
+  "generate_audio": false
+ },
+ "prompt_file": "docs/synthetic_slam/prompts/junkyard_v1.txt",
+ "prompt_sha256": "0e1dca205501766a1800187aceb042eadaa90d22050859d08ebc967a36d93c3a",
+ "created_at": "2026-10-08T20:57:39+00:00",
+ "task_id": "db5d927cf8bb4622b59aee8d2c38fd71",
+ "status": "completed",
+ "submitted_at": "2026-10-08T20:57:39+00:00",
+ "checked_at": "2026-10-08T21:00:42+00:00",
+ "error": null,
+ "video": "previews/synthetic_slam/junkyard_v1/input.mp4",
+ "video_sha256": "9207b9d2d9dcef1e7ecf1b00ff50bdfcdd6d2797e103a2d14188bc8130bb3229",
+ "timings": {
+  "inference": 177876
+ },
+ "completed_at": "2026-10-08T21:00:43+00:00"
+}

@@ -1,0 +1,5 @@
+Low first-person view from a small wheeled robot, camera 30 cm above the ground, rolling slowly along a dirt lane through an auto junkyard between stacks of wrecked, rusted cars.
+0-2 s: the robot rolls forward down the lane; crushed sedans stacked three high on both sides, flaking paint, shattered windows, rusted rims and loose tyres on the ground.
+2-4 s: it curves gently left around a pile of old tyres; a faded yellow pickup truck with no doors and a stack of flattened car bodies come into view; a chain-link fence and a tall crane stand in the background.
+4-6 s: it continues forward past an old car with its hood open and engine exposed, puddles on the dirt reflecting the sky.
+Smooth, steady motion at walking pace, slight vibration from the uneven ground, one continuous shot with no cuts. Static scene: nothing moves except the robot, no people. Overcast daylight, soft even lighting, sharp focus, photorealistic. No audio, no text, no subtitles.
