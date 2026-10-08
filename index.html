@@ -1,5 +1,41 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>World Sandbox Journals</title><meta http-equiv="refresh" content="0; url=synthetic_slam/">
-<style>body{margin:0;background:#f7f5fa;color:#23243a;font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:grid;place-items:center;min-height:100vh}a{color:#646da0}</style>
-</head><body><p><a href="synthetic_slam/">synthetic_slam</a></p></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Sandbox</title>
+  <meta name="description" content="Experiments with world models and 3D reconstruction, each with an engineering journal: what was built, what each stage produced, and what was measured.">
+  <meta name="theme-color" content="#121316">
+  <link rel="stylesheet" href="hub.css?v=bb50a767fcc0">
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">World Sandbox · engineering journals · 2026</p>
+    <h1>Worlds rebuilt, generated and measured</h1>
+    <p class="lede">Experiments with world models and 3D reconstruction: turning video into maps, generating worlds
+      for robots, and opening each pipeline up stage by stage. Every journal shows what each stage produced, with the
+      data to replay it.</p>
+  </div>
+</header>
+<main class="wrap">
+  <div class="grid">
+    <a class="card" href="synthetic_slam/" style="--card-accent: #e0703a; --card-band: linear-gradient(125deg, #0c0d0f 0%, #17191c 42%, #33221a 78%, #5a3018 100%);">
+      <div class="poster"><img src="hub_media/synthetic_slam.webp" alt="" loading="lazy"></div>
+      <div class="body">
+        <p class="kicker">SLAM · Depth Anything 3 · RTX 4090</p>
+        <h2>Synthetic SLAM</h2>
+        <p class="line">Six seconds of generated robot video become a camera path and a 3.33 M-point map in 19.9 s, with every stage of AMB3R-SLAM opened up and replayable in 3D.</p>
+        <p class="tags"><span>SLAM</span><span>feed-forward 3D</span><span>generated video</span><span>3D viewer</span></p>
+        <p class="go">Read the journal &rarr;</p>
+      </div>
+    </a>
+  </div>
+</main>
+<footer class="wrap">
+  <p>Source, documentation and recorded results: <a href="https://github.com/rozgo/world-sandbox">rozgo/world-sandbox</a>.
+    Companion sandbox: <a href="https://rozgo.github.io/mujoco-sandbox/">MuJoCo Sandbox</a>. Third-party models and code
+    keep their own licences, listed in each journal.</p>
+</footer>
+</body>
+</html>
