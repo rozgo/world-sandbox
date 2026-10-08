@@ -21,7 +21,7 @@ An optional `viewer` entry, `{"data": <folder with scene.json and points.bin>, "
 `site/viewer/` into the journal's `viewer/` with that run's data and a web copy of its video.
 
 `site/journals/<id>/content.html` holds the chapters, each
-`<section id="slug"><h2>N · Title</h2><p class="when">date · context</p> ... </section>`. Media are
+`<section id="slug"><h2>N · Title</h2><p class="when">one-line context</p> ... </section>`. Media are
 `media/<key>.mp4` (with `media/<key>_poster.webp`) or `media/<key>.webp`. Besides the MuJoCo Sandbox
 components there are `<figure class="embed"><iframe src="viewer/">…` and `<figure class="diagram"><svg>…`.
 

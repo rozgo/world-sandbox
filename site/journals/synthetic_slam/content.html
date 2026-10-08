@@ -1,6 +1,6 @@
   <section id="overview">
     <h2>1 · From pixels to a map</h2>
-    <p class="when">October 8 · what the pipeline does, before the details</p>
+    <p class="when">What the pipeline does, before the details</p>
     <div class="prose">
       <p>SLAM (simultaneous localisation and mapping) answers two questions from a moving camera at once: where was
         the camera at every moment, and what does the world around it look like? Classical systems such as ORB-SLAM
@@ -96,7 +96,7 @@
 
   <section id="input">
     <h2>2 · Six seconds that never happened</h2>
-    <p class="when">October 8 · a text prompt, one generation, one take</p>
+    <p class="when">A text prompt, one generation, one take</p>
     <div class="prose">
       <p>We wanted footage from a small robot's point of view in an industrial setting, and no robot to film it with.
         Seedance 2.5 generated it from a prompt: a camera 30 cm above the ground rolling down a dirt lane between
@@ -112,7 +112,7 @@
 
   <section id="frames">
     <h2>3 · Stage 1: frames</h2>
-    <p class="when">October 8 · what the model actually sees</p>
+    <p class="when">What the model actually sees</p>
     <div class="prose">
       <p>Depth Anything 3 is a vision transformer: it cuts each image into 14 × 14-pixel patches and reasons about
         those. AMB3R-SLAM resizes every frame so the long side is 518 pixels, here 518 × 294, a grid of 37 × 21
@@ -127,7 +127,7 @@
 
   <section id="frontend">
     <h2>4 · Stage 2: front-end tracking</h2>
-    <p class="when">October 8 · a pose for every frame, from four views</p>
+    <p class="when">A pose for every frame, from four views</p>
     <div class="prose">
       <p>For each new frame, the small model DA3-Small sees four images together: the current keyframe, the two most
         recent frames and the new one. It returns their relative poses; the front-end fits a Sim(3) transform from
@@ -150,7 +150,7 @@
 
   <section id="submaps">
     <h2>5 · Stage 3: submaps, the feed-forward pass</h2>
-    <p class="when">October 8 · 32 views in, poses and depth for every pixel out</p>
+    <p class="when">32 views in, poses and depth for every pixel out</p>
     <div class="prose">
       <p>This is where the 3D comes from. Every 32 frames the backend takes the last 96 frames, keeps the front-end's
         most confident frame in each group of four, adds frames so no gap exceeds four, and hands those 32 or 33
@@ -172,7 +172,7 @@
 
   <section id="stitching">
     <h2>6 · Stage 4: stitching submaps</h2>
-    <p class="when">October 8 · Sim(3) on shared frames</p>
+    <p class="when">Sim(3) on shared frames</p>
     <div class="prose">
       <p>Every submap has its own origin and its own scale: a single camera cannot tell a small near scene from a
         large far one. But consecutive submaps overlap, and the frames they share appear in both. Fitting their two
@@ -192,7 +192,7 @@
 
   <section id="long-context">
     <h2>7 · Stage 5: long-context links</h2>
-    <p class="when">October 8 · checking far-apart submaps against each other</p>
+    <p class="when">Checking far-apart submaps against each other</p>
     <div class="prose">
       <p>Alignment between neighbours accumulates small errors, like a chain. Long-context mapping adds links between
         submaps that are not neighbours: one extra pass over 24 frames spread across a window of up to eight
@@ -210,7 +210,7 @@
 
   <section id="loops">
     <h2>8 · Stage 6: loop closure</h2>
-    <p class="when">October 8 · "have I been here before?"</p>
+    <p class="when">"have I been here before?"</p>
     <div class="prose">
       <p>On long routes, the strongest correction comes from recognising a place seen earlier. Every fifth frame the
         backend adds the image to a DBoW2 bag-of-words database (ORB features against a fixed vocabulary) and asks
@@ -224,7 +224,7 @@
 
   <section id="pose-graph">
     <h2>9 · Stage 7: the pose graph</h2>
-    <p class="when">October 8 · one optimisation over every link</p>
+    <p class="when">One optimisation over every link</p>
     <div class="prose">
       <p>Each submap becomes a node; each alignment, long-context link and loop becomes an edge that says where one
         node should sit relative to another. A robust Sim(3) optimisation then moves the nodes until the edges agree
@@ -239,7 +239,7 @@
 
   <section id="map">
     <h2>10 · Stage 8: from depth to a map</h2>
-    <p class="when">October 8 · which pixels become points</p>
+    <p class="when">Which pixels become points</p>
     <div class="prose">
       <p>Each submap pass predicted depth for every pixel. To build the map, the recorder takes one frame in four,
         prefers the submap where that frame sits nearest the middle, and drops three kinds of pixel: those below the
@@ -263,7 +263,7 @@
 
   <section id="viewer">
     <h2>11 · Explore it in 3D</h2>
-    <p class="when">October 8 · every stage as an overlay, synced with the video</p>
+    <p class="when">Every stage as an overlay, synced with the video</p>
     <div class="prose">
       <p>The viewer replays the run. By default it follows behind the SLAM camera: the yellow frustum is the pose
         SLAM computed, with the frame it was looking at on its image plane. Every recorded stage is a layer you can
@@ -282,7 +282,7 @@
 
   <section id="speed">
     <h2>12 · Speed and scale</h2>
-    <p class="when">October 8 · where the time goes, and a real 13-minute walk</p>
+    <p class="when">Where the time goes, and a real 13-minute walk</p>
     <div class="prose">
       <p>The whole run took 19.85 s for 145 frames, 7.3 frames per second, after 10.9 s to load the models. The two
         models' passes took 13.7 s of it. Throughput, not the video's frame rate, decides whether this is real time:
@@ -315,7 +315,7 @@
 
   <section id="choose">
     <h2>13 · When to use it</h2>
-    <p class="when">October 8 · what it is good at, and where something else fits better</p>
+    <p class="when">What it is good at, and where something else fits better</p>
     <div class="spec-cards">
       <div class="card"><h4>A good fit</h4><ul>
         <li>Ordinary video from one camera, even uncalibrated: a phone, a dashcam, a drone, a generated clip</li>
@@ -334,7 +334,7 @@
 
   <section id="stages">
     <h2>14 · Swapping a stage</h2>
-    <p class="when">October 8 · where each stage lives, and what could replace it</p>
+    <p class="when">Where each stage lives, and what could replace it</p>
     <div class="prose">
       <p>The tracer (<code>src/world_sandbox/slam/trace.py</code>) wraps the upstream methods below without editing
         them, and saves what each returns. That record is the contract for replacing a stage: a new front-end, model
