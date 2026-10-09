@@ -1,0 +1,89 @@
+{
+ "what": "the front-end's live estimate (pose returned as each frame was tracked) and the final trajectory against laser-scanned ground truth, Oxford Spires 2024-03-20-christ-church-05, cam0, 3,961 frames, monocular, uncalibrated; positions Sim(3)-aligned to ground truth (ATE), and the error of every 5-frame displacement (rpe_5f)",
+ "command": "uv run --locked --extra slam python -m world_sandbox.slam.live_eval --dataset spires --data_path <spires> --only 2024-03-20-christ-church-05 --verbose --out <dir> (run.py's settings, as spires_christ_church_05.json)",
+ "hardware": "NVIDIA GeForce RTX 4090, torch 2.14.1+cu130",
+ "gt_path_m": 812.9,
+ "runs": {
+  "5418465": {
+   "code": "authors' code",
+   "amb3r_slam": {
+    "commit": "54184655c259078bd60bc5ddebc838d8f5acda55",
+    "modified": false
+   },
+   "time_s": 705.8,
+   "fps": 5.61,
+   "peak_gpu_gb": 9.11,
+   "loops": 1,
+   "keyframes": 123,
+   "final": {
+    "ate_m": 1.8502,
+    "sim3_scale": 1.4196,
+    "rpe_5f_rms_m": 0.0894,
+    "rpe_5f_p95_m": 0.1814,
+    "rpe_5f_max_m": 0.4295
+   },
+   "live": {
+    "ate_m": 39.6979,
+    "sim3_scale": 0.0,
+    "rpe_5f_rms_m": 4.2887,
+    "rpe_5f_p95_m": 8.1968,
+    "rpe_5f_max_m": 40.5831
+   },
+   "live_vs_final_after_sim3_rms": 27.9537
+  },
+  "692067a": {
+   "code": "first fix only (one world at hand-offs)",
+   "amb3r_slam": {
+    "commit": "692067af615ec82322fbc332b89959d8a3ad042a",
+    "modified": false
+   },
+   "time_s": 707.6,
+   "fps": 5.6,
+   "peak_gpu_gb": 9.11,
+   "loops": 1,
+   "keyframes": 123,
+   "final": {
+    "ate_m": 1.8395,
+    "sim3_scale": 1.1248,
+    "rpe_5f_rms_m": 0.0891,
+    "rpe_5f_p95_m": 0.1807,
+    "rpe_5f_max_m": 0.4287
+   },
+   "live": {
+    "ate_m": 36.9807,
+    "sim3_scale": 0.2244,
+    "rpe_5f_rms_m": 11.4468,
+    "rpe_5f_p95_m": 14.507,
+    "rpe_5f_max_m": 183.7791
+   },
+   "live_vs_final_after_sim3_rms": 32.8464
+  },
+  "552e17f": {
+   "code": "both fixes (this journal)",
+   "amb3r_slam": {
+    "commit": "552e17f8066c12a9f59adbaabcc18bf6e22a6e1f",
+    "modified": false
+   },
+   "time_s": 713.3,
+   "fps": 5.55,
+   "peak_gpu_gb": 9.11,
+   "loops": 1,
+   "keyframes": 123,
+   "final": {
+    "ate_m": 2.2861,
+    "sim3_scale": 1.1205,
+    "rpe_5f_rms_m": 0.0979,
+    "rpe_5f_p95_m": 0.2126,
+    "rpe_5f_max_m": 0.4621
+   },
+   "live": {
+    "ate_m": 3.9048,
+    "sim3_scale": 1.098,
+    "rpe_5f_rms_m": 0.3619,
+    "rpe_5f_p95_m": 0.6588,
+    "rpe_5f_max_m": 3.3779
+   },
+   "live_vs_final_after_sim3_rms": 2.3671
+  }
+ }
+}

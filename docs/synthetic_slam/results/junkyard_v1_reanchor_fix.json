@@ -1,0 +1,442 @@
+{
+ "what": "the front-end's live estimate (pose returned when each frame was tracked) against the final trajectory, for the same video before and after the hand-off fix; from the first frame tracked after the first backend hand-off",
+ "before_trace": "outputs/synthetic_slam/junkyard_v1/trace",
+ "after_trace": "outputs/synthetic_slam/junkyard_v1/trace_fix",
+ "before": {
+  "upstream": {
+   "commit": "5418465"
+  },
+  "run_s": 19.85,
+  "frames_compared": [
+   32,
+   144
+  ],
+  "final_path_length_model_units": 10.181,
+  "live_path_length_over_final": 21.54,
+  "live_step_over_final_step": {
+   "median": 7.09,
+   "max": 323.4
+  },
+  "live_step_over_final_step_between_handoffs": [
+   {
+    "frames": [
+     33,
+     63
+    ],
+    "median": 1.19,
+    "max": 1.42
+   },
+   {
+    "frames": [
+     65,
+     95
+    ],
+    "median": 27.39,
+    "max": 56.8
+   },
+   {
+    "frames": [
+     98,
+     127
+    ],
+    "median": 5.25,
+    "max": 103.55
+   },
+   {
+    "frames": [
+     129,
+     144
+    ],
+    "median": 18.95,
+    "max": 102.73
+   }
+  ],
+  "live_step_over_final_step_first_frame_after_handoff": [
+   {
+    "frame": 32,
+    "live_step_over_final": 2.2
+   },
+   {
+    "frame": 64,
+    "live_step_over_final": 4.9
+   },
+   {
+    "frame": 96,
+    "live_step_over_final": 120.2
+   },
+   {
+    "frame": 97,
+    "live_step_over_final": 323.4
+   },
+   {
+    "frame": 128,
+    "live_step_over_final": 178.1
+   }
+  ],
+  "live_vs_final_as_returned_max_pct_of_path": 643.0,
+  "live_vs_final_after_sim3_fit_pct_of_path": {
+   "rms": 8.76,
+   "max": 28.32
+  },
+  "frontend_scale": {
+   "range": [
+    3.0,
+    147.11
+   ],
+   "largest_jump_between_frames": 7.61,
+   "at_frames": {
+    "32": 3.5,
+    "64": 8.16,
+    "65": 54.34,
+    "96": 140.64,
+    "128": 109.44,
+    "144": 90.99
+   }
+  },
+  "handoff_sim3": []
+ },
+ "after": {
+  "upstream": {
+   "commit": "552e17f8066c12a9f59adbaabcc18bf6e22a6e1f",
+   "branch": "fix/reanchor-units",
+   "modified": false
+  },
+  "run_s": 20.62,
+  "frames_compared": [
+   32,
+   144
+  ],
+  "final_path_length_model_units": 9.425,
+  "live_path_length_over_final": 1.05,
+  "live_step_over_final_step": {
+   "median": 1.01,
+   "max": 4.3
+  },
+  "live_step_over_final_step_between_handoffs": [
+   {
+    "frames": [
+     33,
+     63
+    ],
+    "median": 0.9,
+    "max": 1.59
+   },
+   {
+    "frames": [
+     65,
+     95
+    ],
+    "median": 1.07,
+    "max": 1.62
+   },
+   {
+    "frames": [
+     98,
+     127
+    ],
+    "median": 1.12,
+    "max": 1.72
+   },
+   {
+    "frames": [
+     129,
+     144
+    ],
+    "median": 0.91,
+    "max": 1.51
+   }
+  ],
+  "live_step_over_final_step_first_frame_after_handoff": [
+   {
+    "frame": 32,
+    "live_step_over_final": 5.1
+   },
+   {
+    "frame": 64,
+    "live_step_over_final": 4.3
+   },
+   {
+    "frame": 96,
+    "live_step_over_final": 0.4
+   },
+   {
+    "frame": 97,
+    "live_step_over_final": 1.4
+   },
+   {
+    "frame": 128,
+    "live_step_over_final": 1.8
+   }
+  ],
+  "live_vs_final_as_returned_max_pct_of_path": 2.5,
+  "live_vs_final_after_sim3_fit_pct_of_path": {
+   "rms": 0.88,
+   "max": 2.11
+  },
+  "frontend_scale": {
+   "range": [
+    2.23,
+    3.75
+   ],
+   "largest_jump_between_frames": 2.95,
+   "at_frames": {
+    "32": 3.02,
+    "64": 2.93,
+    "65": 2.77,
+    "96": 2.87,
+    "128": 2.66,
+    "144": 2.98
+   }
+  },
+  "handoff_sim3": [
+   {
+    "after_frame": 31,
+    "scale": 3.123,
+    "shift": 1.162
+   },
+   {
+    "after_frame": 63,
+    "scale": 1.028,
+    "shift": 0.039
+   },
+   {
+    "after_frame": 95,
+    "scale": 1.003,
+    "shift": 0.01
+   },
+   {
+    "after_frame": 96,
+    "scale": 1.007,
+    "shift": 0.011
+   },
+   {
+    "after_frame": 127,
+    "scale": 0.99,
+    "shift": 0.045
+   },
+   {
+    "after_frame": 144,
+    "scale": 0.969,
+    "shift": 0.159
+   }
+  ]
+ },
+ "before_fits_across_two_worlds": [
+  {
+   "frame": 32,
+   "fitted_against": [
+    17,
+    30,
+    31
+   ],
+   "scale_before": 1.57,
+   "scale_after": 3.5,
+   "pairs": [
+    {
+     "frames": [
+      17,
+      30
+     ],
+     "written_by": [
+      "backend",
+      "front-end"
+     ],
+     "apart_in_table": 0.775,
+     "apart_on_final_path": 0.958
+    },
+    {
+     "frames": [
+      17,
+      31
+     ],
+     "written_by": [
+      "backend",
+      "backend"
+     ],
+     "apart_in_table": 0.958,
+     "apart_on_final_path": 1.032
+    },
+    {
+     "frames": [
+      30,
+      31
+     ],
+     "written_by": [
+      "front-end",
+      "backend"
+     ],
+     "apart_in_table": 0.185,
+     "apart_on_final_path": 0.074
+    }
+   ]
+  },
+  {
+   "frame": 64,
+   "fitted_against": [
+    48,
+    62,
+    63
+   ],
+   "scale_before": 4.16,
+   "scale_after": 8.16,
+   "pairs": [
+    {
+     "frames": [
+      48,
+      62
+     ],
+     "written_by": [
+      "backend",
+      "front-end"
+     ],
+     "apart_in_table": 2.508,
+     "apart_on_final_path": 1.059
+    },
+    {
+     "frames": [
+      48,
+      63
+     ],
+     "written_by": [
+      "backend",
+      "backend"
+     ],
+     "apart_in_table": 1.016,
+     "apart_on_final_path": 1.134
+    },
+    {
+     "frames": [
+      62,
+      63
+     ],
+     "written_by": [
+      "front-end",
+      "backend"
+     ],
+     "apart_in_table": 1.496,
+     "apart_on_final_path": 0.075
+    }
+   ]
+  },
+  {
+   "frame": 65,
+   "fitted_against": [
+    63,
+    64
+   ],
+   "scale_before": 8.16,
+   "scale_after": 54.34,
+   "pairs": [
+    {
+     "frames": [
+      63,
+      64
+     ],
+     "written_by": [
+      "backend",
+      "front-end"
+     ],
+     "apart_in_table": 1.223,
+     "apart_on_final_path": 0.073
+    }
+   ]
+  },
+  {
+   "frame": 96,
+   "fitted_against": [
+    83,
+    94,
+    95
+   ],
+   "scale_before": 137.16,
+   "scale_after": 140.64,
+   "pairs": [
+    {
+     "frames": [
+      83,
+      94
+     ],
+     "written_by": [
+      "front-end",
+      "front-end"
+     ],
+     "apart_in_table": 33.613,
+     "apart_on_final_path": 0.79
+    },
+    {
+     "frames": [
+      83,
+      95
+     ],
+     "written_by": [
+      "front-end",
+      "backend"
+     ],
+     "apart_in_table": 31.255,
+     "apart_on_final_path": 0.862
+    },
+    {
+     "frames": [
+      94,
+      95
+     ],
+     "written_by": [
+      "front-end",
+      "backend"
+     ],
+     "apart_in_table": 63.451,
+     "apart_on_final_path": 0.072
+    }
+   ]
+  },
+  {
+   "frame": 128,
+   "fitted_against": [
+    110,
+    126,
+    127
+   ],
+   "scale_before": 14.38,
+   "scale_after": 109.44,
+   "pairs": [
+    {
+     "frames": [
+      110,
+      126
+     ],
+     "written_by": [
+      "front-end",
+      "front-end"
+     ],
+     "apart_in_table": 4.892,
+     "apart_on_final_path": 1.032
+    },
+    {
+     "frames": [
+      110,
+      127
+     ],
+     "written_by": [
+      "front-end",
+      "backend"
+     ],
+     "apart_in_table": 38.905,
+     "apart_on_final_path": 1.095
+    },
+    {
+     "frames": [
+      126,
+      127
+     ],
+     "written_by": [
+      "front-end",
+      "backend"
+     ],
+     "apart_in_table": 42.41,
+     "apart_on_final_path": 0.063
+    }
+   ]
+  }
+ ],
+ "final_paths_differ_after_sim3_fit_rms_pct_of_path": 0.11
+}

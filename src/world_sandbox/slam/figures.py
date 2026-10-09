@@ -446,7 +446,7 @@ def label(d, xy, text, fill, font):
     d.text(xy, text, fill=fill, font=font)
 
 
-def film(run, out, size=(1920, 1080), inset_w=560, orbit_s=5.0):
+def film(run, out, size=(1920, 1080), inset_w=560, orbit_s=5.0, crf=18):
     """The SLAM camera's chase view, full frame, with the input video picture-in-picture; then an orbit."""
     W, H = size
     iw, ih = inset_w, inset_w * 9 // 16
@@ -459,7 +459,7 @@ def film(run, out, size=(1920, 1080), inset_w=560, orbit_s=5.0):
     big, small = font(34), font(26)
     proc = run.t["timing"]["run_s"]
     cmd = [FFMPEG, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
-           "-r", str(run.fps), "-i", "-", "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
+           "-r", str(run.fps), "-i", "-", "-c:v", "libx264", "-preset", "slow", "-crf", str(crf), "-pix_fmt", "yuv420p",
            "-movflags", "+faststart", str(out/"film.mp4")]
     enc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 

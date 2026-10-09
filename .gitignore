@@ -17,3 +17,8 @@ data/
 
 # OS
 .DS_Store
+
+# SLAM explainer film (fframes): kept out of Git for now
+films/
+docs/slam_explainer/
+previews/slam_explainer/

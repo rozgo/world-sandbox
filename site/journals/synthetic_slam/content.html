@@ -130,22 +130,31 @@
     <p class="when">A pose for every frame, from four views</p>
     <div class="prose">
       <p>For each new frame, the small model DA3-Small sees four images together: the current keyframe, the two most
-        recent frames and the new one. It returns their relative poses; the front-end fits a Sim(3) transform from
-        the frames it already placed, and that gives the new frame's pose. It ran 144 times, once per frame after the
-        first, for 3.89 s of model time.</p>
+        recent frames and the new one. It returns their relative poses; the front-end fits a Sim(3) transform, with
+        its scale taken from the keyframe's depth, and that gives the new frame's pose. It ran 144 times, once per
+        frame after the first, for 3.99 s of model time.</p>
       <p>A keyframe is the reference the tracker leans on. When less than 35% of the keyframe is still visible in the
-        new frame, or 32 frames have passed, the new frame becomes the keyframe. That happened 8 times: at frames 0,
-        17, 33, 48, 64, 83, 110 and 141.</p>
+        new frame, or 32 frames have passed, the new frame becomes the keyframe; that happened at frames 0, 17, 47, 61
+        and 78. And every 32 frames the backend hands the front-end a fresh keyframe: its own newest frame, with its
+        depth.</p>
     </div>
     <figure><img src="media/frontend.webp" alt="Four frames of one front-end pass; the overlap curve with keyframe promotions; the front-end's scale estimate over time; the final path from above" loading="lazy">
       <figcaption>Top: the four views of the pass that tracked frame 58. Bottom: how much of the keyframe stays in
         view, falling until a new keyframe is chosen; the front-end's own scale estimate (log scale), with the
-        frames where the backend re-anchored it; and the final camera path.</figcaption></figure>
-    <div class="failure"><strong>The front-end drifts in scale.</strong> Its scale estimate should stay roughly
-      constant. Here it climbed from 1.0 to 140.6 by frame 96, peaking at 147, so its live path grew much faster than
-      the robot moved. The final path does not use these poses: every 32 frames the backend re-anchors the front-end
-      onto its own submap poses (at frames 31, 63, 95, 96, 127 and 144), and the final trajectory comes from the
-      submaps alone. The front-end is the first stage we would try to improve.</div>
+        frames where the backend hands it new poses; and the final camera path.</figcaption></figure>
+    <div class="note-box"><strong>A fix along the way.</strong> Tracing every stage showed the front-end's live
+      estimate running away from the final path: 21.5 times too long in this clip's first run. Two causes: the
+      backend's hand-off mixed two coordinate systems, and the front-end took its scale from frames it had just
+      placed itself, so errors fed on themselves. We fixed both in our fork of AMB3R-SLAM
+      (<a href="https://github.com/rozgo/amb3r-slam/tree/fix/reanchor-units"><code>rozgo/amb3r-slam</code></a>,
+      commit <code>552e17f</code>): the front-end now takes its scale from its keyframe's depth and restarts from the
+      backend's poses at each hand-off. Its live path now stays within 1% of the final one here (RMS), and on the
+      real 13-minute Oxford walk of chapter 12 its error against the laser ground truth fell from 39.7 m to 3.9 m.</div>
+    <figure><img src="media/handoff.webp" alt="The front-end's live scale and live step length against the final path, before and after the fix, and the live and final paths from above after it" loading="lazy">
+      <figcaption>The front-end's live estimate before and after the fix. Left: its scale, with the six hand-offs.
+        Middle: how far it moves per frame, against the final path (1 = they agree). Right: after the fix, the live
+        path (dashed) on the final one. Numbers: <code>junkyard_v1_reanchor_fix.json</code> and
+        <code>spires_christ_church_05_live.json</code> in <code>docs/synthetic_slam/results/</code>.</figcaption></figure>
   </section>
 
   <section id="submaps">
@@ -153,17 +162,17 @@
     <p class="when">32 views in, poses and depth for every pixel out</p>
     <div class="prose">
       <p>This is where the 3D comes from. Every 32 frames the backend takes the last 96 frames, keeps the front-end's
-        most confident frame in each group of four, adds frames so no gap exceeds four, and hands those 32 or 33
+        most confident frame in each group of four, adds frames so no gap exceeds four, and hands those 33 to 35
         views to DA3-Nested-Giant-Large in one pass. Out come, for every view, a camera pose, a depth for every pixel,
         a confidence for every pixel, the camera intrinsics and a sky mask. That set, in its own coordinate frame
         and units, is a submap.</p>
-      <p>Each pass took 1.71 to 1.78 s on the RTX 4090. Two short warm-up passes (11 and 21 views, at frames 31 and
+      <p>Each pass took 1.79 to 1.92 s on the RTX 4090. Two short warm-up passes (11 and 21 views, at frames 31 and
         63) gave the robot a map before the first full window; both were replaced. The model estimated a focal
-        length of about 248 × 240 pixels at the 518 × 294 input, a horizontal field of view of about 92°, which suits a
+        length of about 248 × 239 pixels at the 518 × 294 input, a horizontal field of view of about 93°, which suits a
         low robot camera.</p>
     </div>
     <figure><img src="media/submap.webp" alt="Six views of submap 2 with their depth maps, confidence maps and sky masks" loading="lazy">
-      <figcaption>Six of submap 2's 32 views. Depth: warm is near. Confidence: brighter is surer; the ground is the
+      <figcaption>Six of submap 2's 34 views. Depth: warm is near. Confidence: brighter is surer; the ground is the
         surest, sky and distant stacks the least. Teal marks the pixels the model called sky.</figcaption></figure>
     <figure><img src="media/submap3d.webp" alt="Submap 2's points in 3D with its 32 camera frustums along the path" loading="lazy">
       <figcaption>Submap 2 alone, from one pass: its views' depths placed with its own poses, with every second
@@ -180,7 +189,7 @@
         the new submap in the old one's frame. Scale comes from depth ratios; rotation and translation from the
         shared cameras.</p>
       <p>Each new submap is aligned to its predecessor, and to the one before that when they still share frames. The
-        five alignments here shared 16 to 32 frames and fitted with relative residuals of 0.41% to 1.61%, in 0.02 s
+        five alignments here shared 18 to 33 frames and fitted with relative residuals of 0.54% to 1.51%, in 0.03 s
         in total.</p>
     </div>
     <figure><img src="media/spans.webp" alt="A timeline of the six submap passes, their chosen frames, and the alignments between overlapping submaps" loading="lazy">
@@ -199,7 +208,7 @@
         submaps. If two distant submaps both fit that pass well, the pass links them directly. A link is only kept
         if the two submaps actually see the same place, which ALIKED keypoints test: at least 20% of their frame
         pairs must share enough matched keypoints.</p>
-      <p>Here the window covered all four submaps in one 24-view pass (1.23 s). The only far-apart pair, submaps 0
+      <p>Here the window covered all four submaps in one 24-view pass (1.24 s). The only far-apart pair, submaps 0
         and 3, failed the test: 1 of 72 frame pairs (1.4%). That is right: the robot's first frames and its last
         frames look at different parts of the yard.</p>
     </div>
@@ -230,8 +239,8 @@
         node should sit relative to another. A robust Sim(3) optimisation then moves the nodes until the edges agree
         as well as they can. With loops, this is where accumulated drift is corrected.</p>
       <p>Here the graph has 4 nodes and 5 edges and no loops, and the chain of alignments already agreed: the
-        optimisation moved no submap by more than 0.11% of the path length, or changed its scale by more than 0.59%,
-        in 0.14 s.</p>
+        optimisation moved no submap by more than 0.07% of the path length, or changed its scale by more than 0.78%,
+        in 0.12 s.</p>
     </div>
     <figure><img src="media/graph.webp" alt="The pose graph: four submap nodes with adjacent and span edges and a rejected long-context candidate; bars of how much each node moved" loading="lazy">
       <figcaption>Left: the graph, with each edge's fit residual. Right: what the final optimisation changed.</figcaption></figure>
@@ -246,16 +255,16 @@
         20th percentile of the frame's confidence, those on a depth edge (a jump of more than 3% within 3 × 3
         pixels, where foreground and background blur together), and sky. The rest are placed in the world with
         their submap's final Sim(3).</p>
-      <p>From 37 frames that gives 3,330,749 points, and 212,779 when sampling every fourth pixel; exporting took
-        0.20 s.</p>
+      <p>From 37 frames that gives 3,330,429 points, and 212,818 when sampling every fourth pixel; exporting took
+        0.18 s.</p>
     </div>
     <figure><img src="media/filter.webp" alt="One frame and the same frame with dropped pixels coloured: sky, depth edges and low confidence" loading="lazy">
-      <figcaption>Frame 82: 56% of its pixels kept; 30% sky and 14% depth edges dropped. The confidence cut removes
+      <figcaption>Frame 80: 57% of its pixels kept; 29% sky and 15% depth edges dropped. The confidence cut removes
         nothing in this frame: at least a fifth of its pixels share the lowest confidence value, and the cut keeps
         ties.</figcaption></figure>
     <div class="grid2">
       <figure><img src="media/mapchase.webp" alt="The final map from behind the robot's starting point, with keyframe frustums along the path" loading="lazy">
-        <figcaption>The finished map from behind the start, with the 8 keyframes as yellow frustums.</figcaption></figure>
+        <figcaption>The finished map from behind the start, with the front-end's 5 keyframes as yellow frustums.</figcaption></figure>
       <figure><img src="media/maphigh.webp" alt="The final map from above and to the side" loading="lazy">
         <figcaption>The same map from above: the lane, the car stacks, the tyre piles and the pickup.</figcaption></figure>
     </div>
@@ -268,7 +277,7 @@
       <p>The viewer replays the run. By default it follows behind the SLAM camera: the yellow frustum is the pose
         SLAM computed, with the frame it was looking at on its image plane. Every recorded stage is a layer you can
         switch on: the front-end's four-view window, keyframes, the latest submap pass, the pose graph, loop probes,
-        and the front-end's drifting live estimate. Colour the points by photo, by submap, by confidence or by time.
+        and the front-end's live estimate. Colour the points by photo, by submap, by confidence or by time.
         Reveal them as the camera films them, or only once the backend has committed their submap. Ego view looks
         through the computed camera, with a slider to blend the real frame over the map.</p>
     </div>
@@ -284,31 +293,32 @@
     <h2>12 · Speed and scale</h2>
     <p class="when">Where the time goes, and a real 13-minute walk</p>
     <div class="prose">
-      <p>The whole run took 19.85 s for 145 frames, 7.3 frames per second, after 10.9 s to load the models. The two
-        models' passes took 13.7 s of it. Throughput, not the video's frame rate, decides whether this is real time:
+      <p>The whole run took 20.62 s for 145 frames, 7.0 frames per second, after 11.5 s to load the models. The two
+        models' passes took 14.3 s of it. Throughput, not the video's frame rate, decides whether this is real time:
         at about 6 to 7 frames per second it keeps up with a camera sampled at 5 Hz, and falls behind a 24 fps clip
-        by 3.3×.</p>
+        by 3.4×.</p>
     </div>
     <div class="table-wrap"><table>
       <tr><th>Stage</th><th class="num">Seconds</th><th>What ran</th></tr>
-      <tr><td>2 · Front-end</td><td class="num">4.75</td><td>144 DA3-Small passes over 2 to 4 views (3.89 s in the model)</td></tr>
-      <tr class="hl"><td>3 · Submaps</td><td class="num">8.86</td><td>6 DA3 Giant passes over 11 to 33 views</td></tr>
-      <tr><td>4 · Stitching</td><td class="num">0.02</td><td>5 Sim(3) alignments</td></tr>
-      <tr><td>5 · Long context</td><td class="num">1.61</td><td>1 pass over 24 views, 1 covisibility check</td></tr>
-      <tr><td>6 · Loops</td><td class="num">0.28</td><td>29 retrieval probes</td></tr>
-      <tr><td>7 · Pose graph</td><td class="num">0.14</td><td>4 nodes, 5 edges</td></tr>
-      <tr><td>Everything else</td><td class="num">4.20</td><td>image handling, re-anchoring, bookkeeping</td></tr>
-      <tr><td>8 · Map export, after the run</td><td class="num">0.20</td><td>3,330,749 points</td></tr>
+      <tr><td>2 · Front-end</td><td class="num">4.94</td><td>144 DA3-Small passes over 2 to 4 views (3.99 s in the model)</td></tr>
+      <tr class="hl"><td>3 · Submaps</td><td class="num">9.28</td><td>6 DA3 Giant passes over 11 to 35 views</td></tr>
+      <tr><td>4 · Stitching</td><td class="num">0.03</td><td>5 Sim(3) alignments, and 2 for the warm-up</td></tr>
+      <tr><td>5 · Long context</td><td class="num">1.62</td><td>1 pass over 24 views, 1 covisibility check</td></tr>
+      <tr><td>6 · Loops</td><td class="num">0.32</td><td>29 retrieval probes</td></tr>
+      <tr><td>7 · Pose graph</td><td class="num">0.12</td><td>4 nodes, 5 edges</td></tr>
+      <tr><td>Everything else</td><td class="num">4.32</td><td>image handling, re-anchoring, bookkeeping</td></tr>
+      <tr><td>8 · Map export, after the run</td><td class="num">0.18</td><td>3,330,429 points</td></tr>
     </table></div>
     <div class="prose">
-      <p>Before this project we ran the same code on a real recording, for scale: the 13-minute Christ Church walk
+      <p>Before this project we ran the authors' code on a real recording, for scale: the 13-minute Christ Church walk
         from the Oxford Spires dataset (2024), one camera of a handheld rig at 5 Hz, 816 m on foot, with laser-scanned
-        ground truth.</p>
+        ground truth. The tiles are the authors' code; the live estimate on the same walk, before and after our fix, is
+        in chapter 4.</p>
     </div>
     <div class="result-strip">
       <div class="tile"><div class="big">3,961<small>frames</small></div><div class="what">800 s of camera at 4.95 Hz, one camera</div><div class="vs">processed in 693.6 s: 1.15× faster than the recording</div></div>
       <div class="tile"><div class="big">1.86<small>m</small></div><div class="what">trajectory error over an 816 m walk</div><div class="vs">after a Sim(3) fit; the unaligned map is 1.43× off in scale</div></div>
-      <div class="tile"><div class="big">9.1<small>GB</small></div><div class="what">peak GPU memory for 3,961 frames</div><div class="vs">7.7 GB for this clip's 145: memory stays bounded</div></div>
+      <div class="tile"><div class="big">9.1<small>GB</small></div><div class="what">peak GPU memory for 3,961 frames</div><div class="vs">7.8 GB for this clip's 145: memory stays bounded</div></div>
       <div class="tile"><div class="big">1<small>loop</small></div><div class="what">closed on the Oxford walk</div><div class="vs">0 here: the junkyard robot never returns</div></div>
     </div>
   </section>
@@ -336,8 +346,8 @@
     <h2>14 · Swapping a stage</h2>
     <p class="when">Where each stage lives, and what could replace it</p>
     <div class="prose">
-      <p>The tracer (<code>src/world_sandbox/slam/trace.py</code>) wraps the upstream methods below without editing
-        them, and saves what each returns. That record is the contract for replacing a stage: a new front-end, model
+      <p>The tracer (<code>src/world_sandbox/slam/trace.py</code>) wraps the methods below without editing them, and
+        saves what each returns; the two fixes we made to the code itself (chapter 4) are in our fork. That record is the contract for replacing a stage: a new front-end, model
         or retrieval method can be run on the same video and compared stage by stage, in the same figures and the
         same viewer.</p>
     </div>
@@ -353,8 +363,9 @@
       <tr><td>8 · Map</td><td><code>MapRecorder</code> (our subclass)</td><td>points with source frame, submap and confidence</td><td>meshes, Gaussian splats</td></tr>
     </table></div>
     <ol class="next-steps">
-      <li><strong>Fix the front-end's scale</strong>Test a stronger front-end or more frequent re-anchoring, and measure
-        the live path against the final one.</li>
+      <li><strong>The front-end, further</strong>Keep the live pose smooth where it snaps back at a hand-off (up to
+        3.2 m on the Oxford walk), and confirm on more sequences that the fix leaves the map as it was (on Oxford the
+        final path moved from 1.85 m to 2.29 m).</li>
       <li><strong>A longer generated loop</strong>A clip that returns to its start, to exercise loop closure and the
         pose graph on synthetic input.</li>
       <li><strong>VGGT-Ω against Depth Anything 3</strong>The same video and tracer with the other backend model,

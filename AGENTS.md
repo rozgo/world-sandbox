@@ -25,11 +25,14 @@ uv run --locked python scripts/build_journals.py  # build every journal and the 
 Use `uv`, `pyproject.toml` and `uv.lock`; keep heavy stacks in extras. Avoid global installs and
 unrelated upgrades.
 
-## Third-party code stays pinned and unmodified
+## Third-party code stays pinned
 
-- Upstream projects live in `third_party/` as git submodules at a recorded commit. Do not edit them.
-  Observe or extend them from `src/` (the SLAM tracer wraps methods on live objects; its map recorder is
-  a subclass). Native build products stay untracked inside the submodule.
+- Upstream projects live in `third_party/` as git submodules at a recorded commit. Observe or extend them
+  from `src/` (the SLAM tracer wraps methods on live objects; its map recorder is a subclass). Native build
+  products stay untracked inside the submodule.
+- When upstream code itself is wrong, fix it in a fork under `rozgo/`, on a branch, and point the submodule
+  at that commit (AMB3R-SLAM: `fix/reanchor-units`). Never edit a submodule without committing to its fork;
+  say in the journal what changed and keep the run before the fix for comparison.
 - Record each model's and dataset's licence in the journal footer.
 
 ## Generated inputs
@@ -51,7 +54,7 @@ unrelated upgrades.
 ## Results, figures and journals
 
 - Every number in a journal comes from a file in the repository (`docs/<project>/results/`). State the
-  conditions; keep failures and surprises on record (the front-end's scale drift is an example).
+  conditions; keep failures and surprises on record (the front-end hand-off bug is an example).
 - Figures, films and viewer data are built from saved traces by code in `src/`; regenerate them rather
   than editing images. Inspect every figure and sampled film frames before publishing.
 - Journals follow [site/journals/README.md](site/journals/README.md). Build, serve locally, check the

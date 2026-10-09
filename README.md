@@ -6,8 +6,8 @@ every stage produced. Journals: **[rozgo.github.io/world-sandbox](https://rozgo.
 ## Synthetic SLAM
 
 Six seconds of generated video, from a small robot rolling through a junkyard, become a camera path and a
-3.33 million-point map in 19.9 s on one RTX 4090. AMB3R-SLAM runs unmodified from a pinned submodule; a
-tracer keeps every stage's intermediate results, and a three.js viewer replays them in 3D.
+3.33 million-point map in 21.1 s on one RTX 4090. AMB3R-SLAM runs from a pinned submodule, our fork with two
+fixes to its front-end; a tracer keeps every stage's intermediate results, and a three.js viewer replays them in 3D.
 
 [![The SLAM camera, its path and the junkyard map](previews/synthetic_slam/junkyard_v1/hub_card.png)](https://rozgo.github.io/world-sandbox/synthetic_slam/)
 
@@ -34,7 +34,7 @@ the [run guide](docs/synthetic_slam/README.md).
 | Path | Contents |
 | --- | --- |
 | `src/world_sandbox/` | reproducible code: the SLAM tracer, renderer and figure builder |
-| `third_party/amb3r-slam/` | AMB3R-SLAM, pinned and unmodified (git submodule) |
+| `third_party/amb3r-slam/` | AMB3R-SLAM (git submodule), pinned at our fork's fix commit |
 | `scripts/` | video generation, SLAM setup, journal build and publishing |
 | `docs/<project>/` | briefs, prompts, run guides and recorded results (JSON) |
 | `previews/<project>/` | the images, films and viewer data the journals are built from |

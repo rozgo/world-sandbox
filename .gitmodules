@@ -1,4 +1,4 @@
 [submodule "third_party/amb3r-slam"]
 	path = third_party/amb3r-slam
-	url = https://github.com/HengyiWang/amb3r-slam.git
+	url = https://github.com/rozgo/amb3r-slam.git
 	ignore = untracked

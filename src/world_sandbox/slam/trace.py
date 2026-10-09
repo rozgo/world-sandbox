@@ -87,7 +87,8 @@ class Tracer:
         self.torch = torch
         self.p, self.b = pipeline, pipeline.backend
         self.ctx = []
-        self.passes, self.frontend, self.reanchors = [], [], []
+        self.passes, self.frontend, self.reanchors, self.converts = [], [], [], []
+        self.in_transform = False   # FrontEnd.transform re-anchors every pose it holds
         self.submaps, self.align, self.windows, self.covis = [], [], [], []
         self.probes, self.loop_checks, self.pgo = [], [], []
         self.seconds = defaultdict(float)
@@ -270,10 +271,25 @@ class Tracer:
 
         reanchor = fe.reanchor
         def traced_reanchor(frames, P):
-            t.reanchors.append({"after_frame": t.frontend[-1]["frame"] if t.frontend else None,
-                                "frames": [int(f) for f in frames]})
+            if not t.in_transform:
+                t.reanchors.append({"after_frame": t.frontend[-1]["frame"] if t.frontend else None,
+                                    "frames": [int(f) for f in frames]})
             return reanchor(frames, P)
         fe.reanchor = traced_reanchor
+
+        # A Sim(3) applied to every pose the front-end holds: at each hand-off, carrying it
+        # into the backend's world (amb3r-slam fix/reanchor-units), or an online PGO correction.
+        transform = getattr(fe, "transform", None)
+        if transform is not None:
+            def traced_transform(D):
+                t.converts.append({"after_frame": t.frontend[-1]["frame"] if t.frontend else None,
+                                   "scale": float(D[7]), "shift": float(D[:3].norm()), "D": _f(D)})
+                t.in_transform = True
+                try:
+                    return transform(D)
+                finally:
+                    t.in_transform = False
+            fe.transform = traced_transform
 
     # ---- recorders ----------------------------------------------------------------------
     def on_pass(self, who, n_views, ref, seconds, out):
@@ -353,6 +369,14 @@ def _recorder_class():
             return len(xyz), int(on.sum())
 
     return TracingMapRecorder
+
+
+def _upstream():
+    """The amb3r-slam commit that ran, and whether its tracked files were edited."""
+    import subprocess
+    git = lambda *c: subprocess.run(["git", "-C", str(AMB3R), *c], capture_output=True, text=True).stdout.strip()  # noqa: E731
+    return {"commit": git("rev-parse", "HEAD"), "branch": git("rev-parse", "--abbrev-ref", "HEAD"),
+            "modified": bool(git("status", "--porcelain", "--untracked-files=no"))}
 
 
 def main():
@@ -437,8 +461,14 @@ def main():
                         "metric_scale": s["metric_scale"], "seconds": s["seconds"],
                         "replaced": "replaced_by" in s})
     index = lambda sid: final.get(sid)  # noqa: E731
+    # A warm-up pass aligned to the pass it replaces (amb3r-slam fix/reanchor-units) is not an
+    # edge between committed submaps; keep it apart.
+    replaced_by = {s["id"]: s.get("replaced_by") for s in tracer.submaps}
+    warm = lambda e: replaced_by.get(e["a"]) is not None and replaced_by.get(e["a"]) == e["b"]  # noqa: E731
     align = [{**e, "a": index(e["a"]), "b": index(e["b"]),
-              "a_pass": ids.get(e["a"]), "b_pass": ids.get(e["b"])} for e in tracer.align]
+              "a_pass": ids.get(e["a"]), "b_pass": ids.get(e["b"])} for e in tracer.align if not warm(e)]
+    warmup_align = [{**e, "a": None, "b": None, "a_pass": ids.get(e["a"]), "b_pass": ids.get(e["b"])}
+                    for e in tracer.align if warm(e)]
     np.savez_compressed(out/"arrays.npz", **arrays)
     np.savez_compressed(out/"map.npz", **pipeline.backend.recorder.cloud)
 
@@ -447,6 +477,7 @@ def main():
                    "resolution": list(resolution)},
         "model": {"backend": pipeline.cfg.get("model_ckpt", args.model_name), "frontend": str(pipeline.cfg.frontend.ckpt),
                   "device": torch.cuda.get_device_name(0)},
+        "upstream": _upstream(),
         "config": OmegaConf.to_container(pipeline.cfg, resolve=True),
         "timing": {"load_s": load_s, "run_s": run_s, "fps": n / run_s,
                    "stages_s": dict(sorted(tracer.seconds.items())),
@@ -463,6 +494,8 @@ def main():
                    "map_points": counts[0], "map_points_stride": counts[1]},
         "frontend": [{k: v for k, v in r.items() if k != "pose"} for r in tracer.frontend],
         "reanchors": tracer.reanchors,
+        "converts": tracer.converts,
+        "warmup_align": warmup_align,
         "passes": tracer.passes,
         "submaps": submaps,
         "align": align,

@@ -2,7 +2,7 @@
  "title": "Synthetic SLAM Journal",
  "heading": "From six seconds of generated video to a 3D map, one stage at a time",
  "eyebrow": "Engineering journal · October 8, 2026 · AMB3R-SLAM · Depth Anything 3 · Seedance 2.5 · RTX 4090",
- "lede": "A text prompt became a 6 s video of a small robot rolling through a junkyard. AMB3R-SLAM turned its 145 frames, plain RGB from one uncalibrated camera, into a camera path and a 3.33 million-point coloured map in 19.9 s on one GPU. We opened the pipeline into eight stages, recorded what each one produced, and built a viewer that replays them all in 3D.",
+ "lede": "A text prompt became a 6 s video of a small robot rolling through a junkyard. AMB3R-SLAM turned its 145 frames, plain RGB from one uncalibrated camera, into a camera path and a 3.33 million-point coloured map in 20.6 s on one GPU. We opened the pipeline into eight stages, recorded what each one produced, and built a viewer that replays them all in 3D.",
  "description": "A generated junkyard video, run through AMB3R-SLAM stage by stage: front-end tracking, feed-forward submaps, Sim(3) stitching, long-context links, loop retrieval, pose graph and map, with a 3D replay viewer.",
  "hero": {
   "media": "film",
@@ -14,8 +14,8 @@
    "label": "6 s of generated 1280 × 720 video at 24 fps: the only input"
   },
   {
-   "value": "19.9 s",
-   "label": "the whole SLAM run on one RTX 4090, 7.3 frames per second"
+   "value": "20.6 s",
+   "label": "the whole SLAM run on one RTX 4090, 7.0 frames per second"
   },
   {
    "value": "3.33 M",
@@ -23,18 +23,18 @@
   },
   {
    "value": "4 submaps",
-   "label": "from 6 feed-forward passes over 11 to 33 views each"
+   "label": "from 6 feed-forward passes over 11 to 35 views each"
   },
   {
-   "value": "7.7 GB",
+   "value": "7.8 GB",
    "label": "peak GPU memory"
   }
  ],
- "scope": "<strong>What this is.</strong> The video is generated from a text prompt by Seedance 2.5; no robot or camera recorded it. AMB3R-SLAM (Wang and Agapito, 2026) runs unmodified from a pinned submodule; our tracer wraps its methods at run time to keep every intermediate result. The images, figures, film and viewer all come from one recorded run; every number on this page is in <code>docs/synthetic_slam/results/</code>. Distances are in the model's own units: one camera cannot measure absolute scale.",
- "footer": "<p>Source, documentation and recorded results: <a href=\"https://github.com/rozgo/world-sandbox\">rozgo/world-sandbox</a>, <a href=\"https://github.com/rozgo/world-sandbox/tree/main/docs/synthetic_slam\"><code>docs/synthetic_slam/</code></a>. SLAM: <a href=\"https://github.com/HengyiWang/amb3r-slam\">AMB3R-SLAM</a> by Hengyi Wang and Lourdes Agapito (<a href=\"https://arxiv.org/abs/2609.19518\">arXiv 2609.19518</a>, Apache 2.0), pinned at commit <code>5418465</code>. Models: <a href=\"https://github.com/ByteDance-Seed/Depth-Anything-3\">Depth Anything 3</a>, DA3-Small (Apache 2.0) and DA3-Nested-Giant-Large-1.1 (CC BY-NC 4.0). Loop retrieval: DBoW2 with the ORB-SLAM3 vocabulary; covisibility: ALIKED; each under its own licence in the submodule's <code>thirdparty/</code>. Video: ByteDance Seedance 2.5 text-to-video through WaveSpeed. Viewer: <a href=\"https://threejs.org\">three.js</a> r170 (MIT). This is an independent illustration, not a result of those authors.</p>",
+ "scope": "<strong>What this is.</strong> The video is generated from a text prompt by Seedance 2.5; no robot or camera recorded it. AMB3R-SLAM (Wang and Agapito, 2026) runs from a pinned submodule: the authors' commit 5418465 plus two small fixes of ours to its front-end (chapter 4), in a fork; our tracer wraps its methods at run time to keep every intermediate result. The images, figures, film and viewer all come from one recorded run (the figure of the fix compares it with the run before); every number on this page is in <code>docs/synthetic_slam/results/</code>. Distances are in the model's own units: one camera cannot measure absolute scale.",
+ "footer": "<p>Source, documentation and recorded results: <a href=\"https://github.com/rozgo/world-sandbox\">rozgo/world-sandbox</a>, <a href=\"https://github.com/rozgo/world-sandbox/tree/main/docs/synthetic_slam\"><code>docs/synthetic_slam/</code></a>. SLAM: <a href=\"https://github.com/HengyiWang/amb3r-slam\">AMB3R-SLAM</a> by Hengyi Wang and Lourdes Agapito (<a href=\"https://arxiv.org/abs/2609.19518\">arXiv 2609.19518</a>, Apache 2.0), at commit <code>5418465</code>, run from our fork <a href=\"https://github.com/rozgo/amb3r-slam/tree/fix/reanchor-units\">rozgo/amb3r-slam</a> with two fixes to its front-end (<code>fix/reanchor-units</code>, <code>552e17f</code>). Models: <a href=\"https://github.com/ByteDance-Seed/Depth-Anything-3\">Depth Anything 3</a>, DA3-Small (Apache 2.0) and DA3-Nested-Giant-Large-1.1 (CC BY-NC 4.0). Loop retrieval: DBoW2 with the ORB-SLAM3 vocabulary; covisibility: ALIKED; each under its own licence in the submodule's <code>thirdparty/</code>. Video: ByteDance Seedance 2.5 text-to-video through WaveSpeed. Viewer: <a href=\"https://threejs.org\">three.js</a> r170 (MIT). This is an independent illustration, not a result of those authors.</p>",
  "card": {
   "kicker": "SLAM · Depth Anything 3 · RTX 4090",
-  "line": "Six seconds of generated robot video become a camera path and a 3.33 M-point map in 19.9 s, with every stage of AMB3R-SLAM opened up and replayable in 3D.",
+  "line": "Six seconds of generated robot video become a camera path and a 3.33 M-point map in 20.6 s, with every stage of AMB3R-SLAM opened up and replayable in 3D.",
   "tags": [
    "SLAM",
    "feed-forward 3D",
@@ -45,62 +45,66 @@
  },
  "media": {
   "film": {
-   "src": "previews/synthetic_slam/junkyard_v1/film.mp4",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/film.mp4",
    "max_width": 1600,
    "crf": 27,
    "poster_t": 3.0
   },
   "filmstrip": {
-   "src": "previews/synthetic_slam/junkyard_v1/input_filmstrip.png",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/input_filmstrip.png",
    "max_width": 1600
   },
   "frames": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage1_frames.png",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage1_frames.png",
    "max_width": 1600
   },
   "frontend": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage2_frontend.png",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage2_frontend.png",
    "max_width": 1600
   },
   "submap": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage3_submap.png",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage3_submap.png",
    "max_width": 1600
   },
   "submap3d": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage3_submap3d.jpg",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage3_submap3d.jpg",
    "max_width": 1600
   },
   "spans": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage4_spans.png",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage4_spans.png",
    "max_width": 1600
   },
   "submaps3d": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage4_submaps3d.jpg",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage4_submaps3d.jpg",
    "max_width": 1600
   },
   "longcontext": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage5_long_context.png",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage5_long_context.png",
    "max_width": 1600
   },
   "graph": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage7_graph.png",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage7_graph.png",
    "max_width": 1600
   },
   "filter": {
-   "src": "previews/synthetic_slam/junkyard_v1/stage8_filter.png",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage8_filter.png",
    "max_width": 1600
   },
   "mapchase": {
-   "src": "previews/synthetic_slam/junkyard_v1/map_chase.jpg",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/map_chase.jpg",
    "max_width": 1600
   },
   "maphigh": {
-   "src": "previews/synthetic_slam/junkyard_v1/map_high.jpg",
+   "src": "previews/synthetic_slam/junkyard_v1_fix/map_high.jpg",
+   "max_width": 1600
+  },
+  "handoff": {
+   "src": "previews/synthetic_slam/junkyard_v1_fix/stage2_handoff_fix.png",
    "max_width": 1600
   }
  },
  "viewer": {
-  "data": "previews/synthetic_slam/junkyard_v1/viewer",
+  "data": "previews/synthetic_slam/junkyard_v1_fix/viewer",
   "video": "previews/synthetic_slam/junkyard_v1/input.mp4"
  },
  "theme": {
